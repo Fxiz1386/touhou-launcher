@@ -1,0 +1,191 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', 'Noto Sans JP', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Custom scrollbar for game launcher */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(150, 150, 150, 0.25);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #e11d48;
+  }
+}
+
+/* Palette styles: ZUN Pastel */
+.theme-zun_pastel {
+  background-color: #fbf8f3 !important;
+  color: #1f2937 !important;
+}
+
+.theme-zun_pastel .bg-neutral-950 {
+  background-color: #fbf8f3 !important;
+  color: #1f2937 !important;
+}
+
+.theme-zun_pastel .bg-neutral-950\/85,
+.theme-zun_pastel .bg-neutral-950\/90,
+.theme-zun_pastel .bg-neutral-950\/60,
+.theme-zun_pastel .bg-neutral-950\/70,
+.theme-zun_pastel .bg-neutral-950\/80 {
+  background-color: rgba(251, 248, 243, 0.92) !important;
+  color: #1f2937 !important;
+}
+
+.theme-zun_pastel .bg-neutral-900,
+.theme-zun_pastel .bg-neutral-900\/70,
+.theme-zun_pastel .bg-neutral-900\/80,
+.theme-zun_pastel .bg-neutral-900\/60 {
+  background-color: #ffffff !important;
+  color: #1f2937 !important;
+}
+
+.theme-zun_pastel .bg-neutral-800,
+.theme-zun_pastel .bg-neutral-800\/80,
+.theme-zun_pastel .bg-neutral-800\/90 {
+  background-color: #f3ede2 !important;
+  color: #1f2937 !important;
+}
+
+.theme-zun_pastel .border-neutral-800,
+.theme-zun_pastel .border-neutral-800\/60,
+.theme-zun_pastel .border-neutral-800\/80 {
+  border-color: #e5ded3 !important;
+}
+
+.theme-zun_pastel .text-neutral-100,
+.theme-zun_pastel .text-neutral-200,
+.theme-zun_pastel .text-white {
+  color: #18181b !important;
+}
+
+.theme-zun_pastel .text-neutral-300,
+.theme-zun_pastel .text-neutral-400 {
+  color: #4b5563 !important;
+}
+
+.theme-zun_pastel .text-neutral-500 {
+  color: #6b7280 !important;
+}
+
+/* Palette styles: Clean Light */
+.theme-light {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.theme-light .bg-neutral-950 {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+.theme-light .bg-neutral-950\/85,
+.theme-light .bg-neutral-950\/90,
+.theme-light .bg-neutral-950\/60,
+.theme-light .bg-neutral-950\/70,
+.theme-light .bg-neutral-950\/80 {
+  background-color: rgba(248, 250, 252, 0.95) !important;
+  color: #0f172a !important;
+}
+
+.theme-light .bg-neutral-900,
+.theme-light .bg-neutral-900\/70,
+.theme-light .bg-neutral-900\/80,
+.theme-light .bg-neutral-900\/60 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.theme-light .bg-neutral-800,
+.theme-light .bg-neutral-800\/80,
+.theme-light .bg-neutral-800\/90 {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.theme-light .border-neutral-800,
+.theme-light .border-neutral-800\/60,
+.theme-light .border-neutral-800\/80 {
+  border-color: #e2e8f0 !important;
+}
+
+.theme-light .text-neutral-100,
+.theme-light .text-neutral-200,
+.theme-light .text-white {
+  color: #0f172a !important;
+}
+
+.theme-light .text-neutral-300,
+.theme-light .text-neutral-400 {
+  color: #475569 !important;
+}
+
+.theme-light .text-neutral-500 {
+  color: #64748b !important;
+}
+
+/* Ensure text inside game hero gradient banners and box art covers stays bright and legible */
+.theme-zun_pastel .banner-hero,
+.theme-light .banner-hero,
+.theme-zun_pastel .cover-box,
+.theme-light .cover-box {
+  color: #ffffff !important;
+}
+
+.theme-zun_pastel .banner-hero .text-neutral-100,
+.theme-zun_pastel .banner-hero .text-neutral-200,
+.theme-zun_pastel .banner-hero .text-white,
+.theme-light .banner-hero .text-neutral-100,
+.theme-light .banner-hero .text-neutral-200,
+.theme-light .banner-hero .text-white,
+.theme-zun_pastel .cover-box .text-neutral-100,
+.theme-zun_pastel .cover-box .text-neutral-200,
+.theme-zun_pastel .cover-box .text-white,
+.theme-light .cover-box .text-neutral-100,
+.theme-light .cover-box .text-neutral-200,
+.theme-light .cover-box .text-white {
+  color: #ffffff !important;
+}
+
+.theme-zun_pastel .banner-hero .text-neutral-300,
+.theme-zun_pastel .banner-hero .text-neutral-400,
+.theme-light .banner-hero .text-neutral-300,
+.theme-light .banner-hero .text-neutral-400,
+.theme-zun_pastel .cover-box .text-neutral-300,
+.theme-zun_pastel .cover-box .text-neutral-400,
+.theme-light .cover-box .text-neutral-300,
+.theme-light .cover-box .text-neutral-400 {
+  color: #e2e8f0 !important;
+}
+
+/* Fix downloads banner in light/pastel modes */
+.theme-zun_pastel [role="region"],
+.theme-light [role="region"] {
+  background: #ffffff !important;
+  border-color: rgba(225, 29, 72, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+.theme-zun_pastel [role="region"] .text-neutral-100,
+.theme-light [role="region"] .text-neutral-100 {
+  color: #111827 !important;
+}
+
+.theme-zun_pastel [role="region"] .text-neutral-400,
+.theme-light [role="region"] .text-neutral-400 {
+  color: #4b5563 !important;
+}

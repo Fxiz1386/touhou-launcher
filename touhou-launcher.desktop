@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Touhou Project Launcher
+GenericName=Danmaku Shoot 'em up Launcher
+Comment=Lanzador e instalador para Touhou Project en Linux
+Exec="/home/fxiz/Documents/TH12 Port/launch.sh"
+Path=/home/fxiz/Documents/TH12 Port
+Icon=touhou-launcher
+Terminal=false
+Type=Application
+Categories=Game;ArcadeGame;
+StartupWMClass=touhou-launcher
+StartupNotify=true

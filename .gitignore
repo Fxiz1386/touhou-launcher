@@ -1,0 +1,49 @@
+# Build artifacts
+target/
+**/target/
+dist/
+**/dist/
+*.bin
+*.tar.gz
+touhou-launcher
+th12-launcher-bin
+TouhouKeymap.dll
+th12.desktop
+touhou.desktop
+
+# Node & package managers
+node_modules/
+**/node_modules/
+.npm
+package-lock.json.bak
+
+# Wine runtime & prefix
+pfx/
+*.reg
+
+# Game data & ROMs (copyrighted material)
+games/
+*.zip
+*.rar
+*.7z
+Touhou 12 - Undefined Fantastic Object/
+music/
+backups/
+
+# Local user configuration & logs
+launcher_settings.json
+*.log
+*.tmp
+.DS_Store
+.env
+.env.local
+
+# IDEs & Editor metadata
+.vscode/
+.idea/
+.antigravity/
+.aistudio/
+
+# Backups
+backup_slint_launcher/
+*.bak

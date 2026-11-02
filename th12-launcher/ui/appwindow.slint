@@ -1,0 +1,1526 @@
+import { Button, VerticalBox, HorizontalBox, ScrollView } from "std-widgets.slint";
+
+export component AppWindow inherits Window {
+    title: "Touhou Project - Linux Launcher & Installer";
+    icon: @image-url("../assets/launcher_icon.png");
+    preferred-width: 920px;
+    preferred-height: 650px;
+    min-width: 840px;
+    min-height: 580px;
+    default-font-size: 14px;
+    background: #181926;
+
+    in-out property <string> selected-game-id: "th12";
+    in-out property <string> selected-game-title: "Touhou 12: Undefined Fantastic Object";
+    in-out property <string> selected-game-subtitle: "東方星蓮船 ~ Undefined Fantastic Object";
+    in-out property <string> selected-game-era: "DirectX 9 (2009)";
+    in-out property <string> selected-game-desc: "Surca los cielos tras un barco volador y resuelve el misterio de los objetos flotantes no identificados.";
+    in-out property <bool> is-selected-installed: true;
+    in-out property <bool> th06-installed: false;
+    in-out property <bool> th12-installed: true;
+    in-out property <bool> th13-installed: false;
+    in-out property <string> selected-lang: "es";
+    in-out property <string> selected-display-mode: "fullscreen_fsr";
+    in-out property <string> status-msg: "Bienvenido al lanzador de Touhou para Linux";
+    in-out property <bool> is-status-error: false;
+
+    // Config modal properties
+    in-out property <bool> show-config-modal: false;
+    in-out property <bool> cfg-color-32bit: true;
+    in-out property <bool> cfg-fps-60: true;
+    in-out property <int> cfg-bgm-vol: 100;
+    in-out property <int> cfg-se-vol: 100;
+    in-out property <int> cfg-pad-deadzone: 600;
+
+    // Uninstall modal properties
+    in-out property <bool> show-uninstall-modal: false;
+    in-out property <string> uninstall-game-name: "";
+    in-out property <string> uninstall-size-str: "";
+    in-out property <bool> uninstall-keep-saves: true;
+
+    // Detected ZIP properties
+    in-out property <string> detected-zip-path: "";
+    in-out property <string> detected-zip-name: "";
+
+    callback select-game(string);
+    callback play-game(string, string);
+    callback change-display-mode(string, string);
+    callback change-language(string, string);
+    callback save-game-config(string, string, bool, bool, int, int, int);
+    callback open-config(string);
+    callback open-folder(string);
+    callback pick-zip-and-install();
+    callback auto-scan-zips();
+    callback update-patches(string);
+    callback request-uninstall(string);
+    callback confirm-uninstall(string, bool);
+    callback install-detected-zip(string);
+
+    // ROOT LAYER
+    Rectangle {
+        HorizontalBox {
+            padding: 0px;
+            spacing: 0px;
+
+            // LEFT SIDEBAR: Game Library
+            Rectangle {
+                width: 250px;
+                background: #1e2030;
+
+                VerticalBox {
+                    padding: 16px;
+                    spacing: 12px;
+
+                    // Launcher Title
+                    HorizontalBox {
+                        spacing: 10px;
+                        alignment: start;
+
+                        Image {
+                            source: @image-url("../assets/launcher_icon.png");
+                            width: 32px;
+                            height: 32px;
+                            image-fit: contain;
+                        }
+
+                        VerticalLayout {
+                            alignment: center;
+                            Text {
+                                text: "Touhou Launcher";
+                                font-size: 16px;
+                                font-weight: 800;
+                                color: #cad3f5;
+                            }
+                            Text {
+                                text: "Linux Native / Wine";
+                                font-size: 11px;
+                                color: #8bd5ca;
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        height: 1px;
+                        background: #363a4f;
+                    }
+
+                    Text {
+                        text: "BIBLIOTECA DE JUEGOS";
+                        font-size: 11px;
+                        font-weight: 700;
+                        color: #8087a2;
+                    }
+
+                    ScrollView {
+                        vertical-stretch: 1;
+
+                        VerticalBox {
+                            padding: 0px;
+                            spacing: 10px;
+
+                            // TH06 Card in Sidebar
+                            Rectangle {
+                                height: 70px;
+                                border-radius: 8px;
+                                border-width: 2px;
+                                border-color: root.selected-game-id == "th06" ? #ed8796 : (th06-touch.has-hover ? #494d64 : #363a4f);
+                                background: root.selected-game-id == "th06" ? #24273a : (th06-touch.has-hover ? #24273a : #181926);
+
+                                th06-touch := TouchArea {
+                                    clicked => { root.select-game("th06"); }
+                                }
+
+                                HorizontalBox {
+                                    padding: 8px;
+                                    spacing: 12px;
+                                    alignment: center;
+
+                                    Rectangle {
+                                        width: 38px;
+                                        height: 56px;
+                                        border-radius: 4px;
+                                        clip: true;
+                                        background: #181926;
+
+                                        Image {
+                                            source: @image-url("../assets/th06_cover.png");
+                                            width: 100%;
+                                            height: 100%;
+                                            image-fit: contain;
+                                        }
+                                    }
+
+                                    VerticalLayout {
+                                        alignment: center;
+                                        spacing: 2px;
+
+                                        Text {
+                                            text: "Touhou 6: EoSD";
+                                            font-size: 13px;
+                                            font-weight: 700;
+                                            color: root.selected-game-id == "th06" ? #ed8796 : #cad3f5;
+                                        }
+                                        Text {
+                                            text: "東方紅魔郷";
+                                            font-size: 11px;
+                                            color: #a5adcb;
+                                        }
+                                        Text {
+                                            text: root.th06-installed ? "● Instalado" : "○ No instalado";
+                                            font-size: 10px;
+                                            font-weight: 600;
+                                            color: root.th06-installed ? #a6da95 : #ee99a0;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // TH12 Card in Sidebar
+                            Rectangle {
+                                height: 70px;
+                                border-radius: 8px;
+                                border-width: 2px;
+                                border-color: root.selected-game-id == "th12" ? #8bd5ca : (th12-touch.has-hover ? #494d64 : #363a4f);
+                                background: root.selected-game-id == "th12" ? #24273a : (th12-touch.has-hover ? #24273a : #181926);
+
+                                th12-touch := TouchArea {
+                                    clicked => { root.select-game("th12"); }
+                                }
+
+                                HorizontalBox {
+                                    padding: 8px;
+                                    spacing: 12px;
+                                    alignment: center;
+
+                                    Rectangle {
+                                        width: 38px;
+                                        height: 56px;
+                                        border-radius: 4px;
+                                        clip: true;
+                                        background: #181926;
+
+                                        Image {
+                                            source: @image-url("../assets/th12_cover.png");
+                                            width: 100%;
+                                            height: 100%;
+                                            image-fit: contain;
+                                        }
+                                    }
+
+                                    VerticalLayout {
+                                        alignment: center;
+                                        spacing: 2px;
+
+                                        Text {
+                                            text: "Touhou 12: UFO";
+                                            font-size: 13px;
+                                            font-weight: 700;
+                                            color: root.selected-game-id == "th12" ? #8bd5ca : #cad3f5;
+                                        }
+                                        Text {
+                                            text: "東方星蓮船";
+                                            font-size: 11px;
+                                            color: #a5adcb;
+                                        }
+                                        Text {
+                                            text: root.th12-installed ? "● Instalado" : "○ No instalado";
+                                            font-size: 10px;
+                                            font-weight: 600;
+                                            color: root.th12-installed ? #a6da95 : #ee99a0;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // TH13 Card in Sidebar
+                            Rectangle {
+                                height: 70px;
+                                border-radius: 8px;
+                                border-width: 2px;
+                                border-color: root.selected-game-id == "th13" ? #c6a0f6 : (th13-touch.has-hover ? #494d64 : #363a4f);
+                                background: root.selected-game-id == "th13" ? #24273a : (th13-touch.has-hover ? #24273a : #181926);
+
+                                th13-touch := TouchArea {
+                                    clicked => { root.select-game("th13"); }
+                                }
+
+                                HorizontalBox {
+                                    padding: 8px;
+                                    spacing: 12px;
+                                    alignment: center;
+
+                                    Rectangle {
+                                        width: 38px;
+                                        height: 56px;
+                                        border-radius: 4px;
+                                        clip: true;
+                                        background: #181926;
+
+                                        Image {
+                                            source: @image-url("../assets/th13_cover.png");
+                                            width: 100%;
+                                            height: 100%;
+                                            image-fit: contain;
+                                        }
+                                    }
+
+                                    VerticalLayout {
+                                        alignment: center;
+                                        spacing: 2px;
+
+                                        Text {
+                                            text: "Touhou 13: TD";
+                                            font-size: 13px;
+                                            font-weight: 700;
+                                            color: root.selected-game-id == "th13" ? #c6a0f6 : #cad3f5;
+                                        }
+                                        Text {
+                                            text: "東方神霊廟";
+                                            font-size: 11px;
+                                            color: #a5adcb;
+                                        }
+                                        Text {
+                                            text: root.th13-installed ? "● Instalado" : "○ No instalado";
+                                            font-size: 10px;
+                                            font-weight: 600;
+                                            color: root.th13-installed ? #a6da95 : #ee99a0;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Future Games Placeholder Card
+                            Rectangle {
+                                height: 48px;
+                                border-radius: 8px;
+                                border-width: 1px;
+                                border-color: #363a4f;
+                                background: #181926;
+
+                                HorizontalBox {
+                                    padding: 8px;
+                                    spacing: 8px;
+                                    alignment: center;
+
+                                    Text {
+                                        text: "➕ Más juegos en camino...";
+                                        font-size: 12px;
+                                        color: #6e738d;
+                                        font-weight: 600;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Universal ZIP installer button in sidebar
+                    Rectangle {
+                        height: 40px;
+                        border-radius: 8px;
+                        background: side-zip-touch.has-hover ? #363a4f : #24273a;
+                        border-width: 1px;
+                        border-color: #494d64;
+
+                        side-zip-touch := TouchArea {
+                            clicked => { root.pick-zip-and-install(); }
+                        }
+
+                        HorizontalBox {
+                            alignment: center;
+                            spacing: 8px;
+                            Text {
+                                text: "📦 Instalar archivo .ZIP";
+                                font-size: 12px;
+                                font-weight: 600;
+                                color: #b8c0e0;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // VERTICAL DIVIDER
+            Rectangle {
+                width: 1px;
+                background: #363a4f;
+            }
+
+            // RIGHT MAIN CONTENT AREA
+            Rectangle {
+                horizontal-stretch: 1;
+                background: #181926;
+
+                ScrollView {
+                    VerticalBox {
+                        padding: 22px;
+                        spacing: 14px;
+
+                        // Game Header
+                        HorizontalBox {
+                            spacing: 16px;
+                            alignment: start;
+
+                            Rectangle {
+                                width: 80px;
+                                height: 118px;
+                                border-radius: 6px;
+                                clip: true;
+                                border-width: 1px;
+                                border-color: #494d64;
+                                background: #181926;
+
+                                Image {
+                                    source: root.selected-game-id == "th06" ? @image-url("../assets/th06_cover.png") : (root.selected-game-id == "th13" ? @image-url("../assets/th13_cover.png") : @image-url("../assets/th12_cover.png"));
+                                    width: 100%;
+                                    height: 100%;
+                                    image-fit: contain;
+                                }
+                            }
+
+                            VerticalLayout {
+                                alignment: center;
+                                spacing: 4px;
+
+                                Text {
+                                    text: root.selected-game-title;
+                                    font-size: 18px;
+                                    font-weight: 800;
+                                    color: #cad3f5;
+                                }
+                                Text {
+                                    text: root.selected-game-subtitle;
+                                    font-size: 13px;
+                                    color: #a5adcb;
+                                }
+                                HorizontalBox {
+                                    spacing: 8px;
+                                    Rectangle {
+                                        border-radius: 4px;
+                                        background: #24273a;
+                                        height: 22px;
+                                        width: 140px;
+                                        Text {
+                                            text: root.selected-game-era;
+                                            font-size: 11px;
+                                            color: #eed49f;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
+                                    Rectangle {
+                                        border-radius: 4px;
+                                        background: root.is-selected-installed ? #233b2e : #3b2323;
+                                        height: 22px;
+                                        width: 110px;
+                                        Text {
+                                            text: root.is-selected-installed ? "✓ Listo para jugar" : "⚠ No instalado";
+                                            font-size: 11px;
+                                            font-weight: 700;
+                                            color: root.is-selected-installed ? #a6da95 : #ee99a0;
+                                            horizontal-alignment: center;
+                                            vertical-alignment: center;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: root.selected-game-desc;
+                            font-size: 13px;
+                            color: #b8c0e0;
+                        }
+
+                        Rectangle {
+                            height: 1px;
+                            background: #363a4f;
+                        }
+
+                        // DYNAMIC CONTENT: INSTALLED vs NOT INSTALLED
+                        if root.is-selected-installed : VerticalBox {
+                            spacing: 12px;
+                            padding: 0px;
+
+                            // SECTION 1: Language Selector
+                            HorizontalBox {
+                                alignment: space-between;
+                                Text {
+                                    text: "Idioma:";
+                                    font-size: 12px;
+                                    font-weight: 700;
+                                    color: #b8c0e0;
+                                    vertical-alignment: center;
+                                }
+                            }
+
+                            HorizontalBox {
+                                spacing: 8px;
+
+                                Rectangle {
+                                    border-radius: 6px;
+                                    border-width: 2px;
+                                    border-color: root.selected-lang == "es" ? #a6da95 : #363a4f;
+                                    background: root.selected-lang == "es" ? #24273a : #1e2030;
+                                    height: 36px;
+
+                                    TouchArea { clicked => { root.selected-lang = "es"; root.change-language(root.selected-game-id, "es"); } }
+
+                                    HorizontalBox {
+                                        alignment: center;
+                                        Text {
+                                            text: "🇪🇸 Español";
+                                            font-weight: root.selected-lang == "es" ? 700 : 400;
+                                            color: root.selected-lang == "es" ? #a6da95 : #cad3f5;
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    border-radius: 6px;
+                                    border-width: 2px;
+                                    border-color: root.selected-lang == "en" ? #8aadf4 : #363a4f;
+                                    background: root.selected-lang == "en" ? #24273a : #1e2030;
+                                    height: 36px;
+
+                                    TouchArea { clicked => { root.selected-lang = "en"; root.change-language(root.selected-game-id, "en"); } }
+
+                                    HorizontalBox {
+                                        alignment: center;
+                                        Text {
+                                            text: "🇬🇧 English";
+                                            font-weight: root.selected-lang == "en" ? 700 : 400;
+                                            color: root.selected-lang == "en" ? #8aadf4 : #cad3f5;
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    border-radius: 6px;
+                                    border-width: 2px;
+                                    border-color: root.selected-lang == "ja" ? #f5a97f : #363a4f;
+                                    background: root.selected-lang == "ja" ? #24273a : #1e2030;
+                                    height: 36px;
+
+                                    TouchArea { clicked => { root.selected-lang = "ja"; root.change-language(root.selected-game-id, "ja"); } }
+
+                                    HorizontalBox {
+                                        alignment: center;
+                                        Text {
+                                            text: "🇯🇵 日本語";
+                                            font-weight: root.selected-lang == "ja" ? 700 : 400;
+                                            color: root.selected-lang == "ja" ? #f5a97f : #cad3f5;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // SECTION 2: Display Mode & Resolution Selector (DIRECT & INTUITIVE)
+                            HorizontalBox {
+                                alignment: space-between;
+                                Text {
+                                    text: "Modo de Pantalla & Resolución:";
+                                    font-size: 12px;
+                                    font-weight: 700;
+                                    color: #b8c0e0;
+                                    vertical-alignment: center;
+                                }
+                                Text {
+                                    text: "FSR elimina bordes rotos y bugs de esquina";
+                                    font-size: 11px;
+                                    color: #8bd5ca;
+                                    vertical-alignment: center;
+                                }
+                            }
+
+                            HorizontalBox {
+                                spacing: 8px;
+
+                                // Fullscreen FSR Button
+                                Rectangle {
+                                    border-radius: 6px;
+                                    border-width: 2px;
+                                    border-color: root.selected-display-mode == "fullscreen_fsr" ? #8bd5ca : #363a4f;
+                                    background: root.selected-display-mode == "fullscreen_fsr" ? #24273a : #1e2030;
+                                    height: 40px;
+
+                                    TouchArea {
+                                        clicked => {
+                                            root.selected-display-mode = "fullscreen_fsr";
+                                            root.change-display-mode(root.selected-game-id, "fullscreen_fsr");
+                                        }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+                                        spacing: 4px;
+                                        Text {
+                                            text: "🖥️ Pantalla Completa (FSR)";
+                                            font-size: 12px;
+                                            font-weight: root.selected-display-mode == "fullscreen_fsr" ? 700 : 400;
+                                            color: root.selected-display-mode == "fullscreen_fsr" ? #8bd5ca : #cad3f5;
+                                        }
+                                    }
+                                }
+
+                                // Fullscreen Integer Button
+                                Rectangle {
+                                    border-radius: 6px;
+                                    border-width: 2px;
+                                    border-color: root.selected-display-mode == "fullscreen_int" ? #8bd5ca : #363a4f;
+                                    background: root.selected-display-mode == "fullscreen_int" ? #24273a : #1e2030;
+                                    height: 40px;
+
+                                    TouchArea {
+                                        clicked => {
+                                            root.selected-display-mode = "fullscreen_int";
+                                            root.change-display-mode(root.selected-game-id, "fullscreen_int");
+                                        }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+                                        Text {
+                                            text: "📺 Retro (Entero)";
+                                            font-size: 12px;
+                                            font-weight: root.selected-display-mode == "fullscreen_int" ? 700 : 400;
+                                            color: root.selected-display-mode == "fullscreen_int" ? #8bd5ca : #cad3f5;
+                                        }
+                                    }
+                                }
+
+                                // Window 1280x960 Button
+                                Rectangle {
+                                    border-radius: 6px;
+                                    border-width: 2px;
+                                    border-color: root.selected-display-mode == "window_1280" ? #eed49f : #363a4f;
+                                    background: root.selected-display-mode == "window_1280" ? #24273a : #1e2030;
+                                    height: 40px;
+
+                                    TouchArea {
+                                        clicked => {
+                                            root.selected-display-mode = "window_1280";
+                                            root.change-display-mode(root.selected-game-id, "window_1280");
+                                        }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+                                        Text {
+                                            text: "🪟 HD 1280x960";
+                                            font-size: 12px;
+                                            font-weight: root.selected-display-mode == "window_1280" ? 700 : 400;
+                                            color: root.selected-display-mode == "window_1280" ? #eed49f : #cad3f5;
+                                        }
+                                    }
+                                }
+
+                                // Window 960x720 Button
+                                Rectangle {
+                                    border-radius: 6px;
+                                    border-width: 2px;
+                                    border-color: root.selected-display-mode == "window_960" ? #eed49f : #363a4f;
+                                    background: root.selected-display-mode == "window_960" ? #24273a : #1e2030;
+                                    height: 40px;
+
+                                    TouchArea {
+                                        clicked => {
+                                            root.selected-display-mode = "window_960";
+                                            root.change-display-mode(root.selected-game-id, "window_960");
+                                        }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+                                        Text {
+                                            text: "🪟 960x720";
+                                            font-size: 12px;
+                                            font-weight: root.selected-display-mode == "window_960" ? 700 : 400;
+                                            color: root.selected-display-mode == "window_960" ? #eed49f : #cad3f5;
+                                        }
+                                    }
+                                }
+
+                                // Window 640x480 Button
+                                Rectangle {
+                                    border-radius: 6px;
+                                    border-width: 2px;
+                                    border-color: root.selected-display-mode == "window_640" ? #eed49f : #363a4f;
+                                    background: root.selected-display-mode == "window_640" ? #24273a : #1e2030;
+                                    height: 40px;
+
+                                    TouchArea {
+                                        clicked => {
+                                            root.selected-display-mode = "window_640";
+                                            root.change-display-mode(root.selected-game-id, "window_640");
+                                        }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+                                        Text {
+                                            text: "🪟 640x480";
+                                            font-size: 12px;
+                                            font-weight: root.selected-display-mode == "window_640" ? 700 : 400;
+                                            color: root.selected-display-mode == "window_640" ? #eed49f : #cad3f5;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // Primary Play Button
+                            Rectangle {
+                                height: 48px;
+                                border-radius: 10px;
+                                background: play-touch.pressed ? #7ec772 : (play-touch.has-hover ? #8bd5ca : #a6da95);
+                                animate background { duration: 150ms; }
+
+                                play-touch := TouchArea {
+                                    clicked => {
+                                        root.play-game(root.selected-game-id, root.selected-lang);
+                                    }
+                                }
+
+                                HorizontalBox {
+                                    alignment: center;
+                                    Text {
+                                        text: "▶  JUGAR AHORA";
+                                        font-size: 16px;
+                                        font-weight: 800;
+                                        color: #181926;
+                                    }
+                                }
+                            }
+
+                            // Secondary Tools Row
+                            HorizontalBox {
+                                spacing: 10px;
+
+                                // Native Config Modal Trigger Button
+                                Rectangle {
+                                    height: 38px;
+                                    border-radius: 8px;
+                                    background: cfg-touch.has-hover ? #363a4f : #24273a;
+                                    border-width: 1px;
+                                    border-color: #494d64;
+
+                                    cfg-touch := TouchArea {
+                                        clicked => { root.show-config-modal = true; }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+                                        Text {
+                                            text: "⚙ Ajustes Avanzados";
+                                            font-size: 12px;
+                                            color: #cad3f5;
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    height: 38px;
+                                    border-radius: 8px;
+                                    background: patch-touch.has-hover ? #363a4f : #24273a;
+                                    border-width: 1px;
+                                    border-color: #494d64;
+
+                                    patch-touch := TouchArea {
+                                        clicked => { root.update-patches(root.selected-game-id); }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+                                        Text {
+                                            text: "🔄 Actualizar Parches";
+                                            font-size: 12px;
+                                            color: #8aadf4;
+                                        }
+                                    }
+                                }
+
+                                Rectangle {
+                                    height: 38px;
+                                    border-radius: 8px;
+                                    background: folder-touch.has-hover ? #363a4f : #24273a;
+                                    border-width: 1px;
+                                    border-color: #494d64;
+
+                                    folder-touch := TouchArea {
+                                        clicked => { root.open-folder(root.selected-game-id); }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+                                        Text {
+                                            text: "📁 Abrir Carpeta";
+                                            font-size: 12px;
+                                            color: #cad3f5;
+                                        }
+                                    }
+                                }
+
+                                // Desinstalar / Liberar Espacio Button
+                                Rectangle {
+                                    height: 38px;
+                                    border-radius: 8px;
+                                    background: uninst-touch.has-hover ? #49282f : #2a1b22;
+                                    border-width: 1px;
+                                    border-color: uninst-touch.has-hover ? #ed8796 : #5e313d;
+
+                                    uninst-touch := TouchArea {
+                                        clicked => { root.request-uninstall(root.selected-game-id); }
+                                    }
+
+                                    HorizontalBox {
+                                        alignment: center;
+                                        spacing: 6px;
+                                        Text {
+                                            text: "🗑️ Desinstalar";
+                                            font-size: 12px;
+                                            color: #ed8796;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if !root.is-selected-installed : VerticalBox {
+                            spacing: 14px;
+                            padding: 0px;
+
+                            if root.detected-zip-path != "" : Rectangle {
+                                background: #1e2d2f;
+                                border-radius: 12px;
+                                border-width: 1px;
+                                border-color: #8bd5ca;
+
+                                VerticalBox {
+                                    padding: 16px;
+                                    spacing: 12px;
+
+                                    HorizontalBox {
+                                        spacing: 12px;
+                                        alignment: start;
+                                        Text {
+                                            text: "📦";
+                                            font-size: 24px;
+                                            vertical-alignment: center;
+                                        }
+                                        VerticalLayout {
+                                            alignment: center;
+                                            spacing: 2px;
+                                            Text {
+                                                text: "¡Instalador detectado en tu equipo!";
+                                                font-size: 14px;
+                                                font-weight: 700;
+                                                color: #8bd5ca;
+                                            }
+                                            Text {
+                                                text: root.detected-zip-name;
+                                                font-size: 12px;
+                                                color: #cad3f5;
+                                            }
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        height: 44px;
+                                        border-radius: 8px;
+                                        background: quick-inst-touch.has-hover ? #a6da95 : #8bd5ca;
+
+                                        quick-inst-touch := TouchArea {
+                                            clicked => { root.install-detected-zip(root.detected-zip-path); }
+                                        }
+
+                                        HorizontalBox {
+                                            alignment: center;
+                                            spacing: 6px;
+                                            Text {
+                                                text: "⚡ Instalar Ahora con 1 Clic";
+                                                font-size: 13px;
+                                                font-weight: 800;
+                                                color: #181926;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                background: #1e2030;
+                                border-radius: 12px;
+                                border-width: 1px;
+                                border-color: #363a4f;
+
+                                VerticalBox {
+                                    padding: 20px;
+                                    spacing: 12px;
+                                    alignment: center;
+
+                                    Text {
+                                        text: "📦 Este juego no está instalado todavía";
+                                        font-size: 16px;
+                                        font-weight: 800;
+                                        color: #f5a97f;
+                                        horizontal-alignment: center;
+                                    }
+                                    Text {
+                                        text: "Solo necesitas descargar el archivo .ZIP del juego. El instalador inteligente detectará los archivos, los preparará con las optimizaciones para Linux (60 FPS, DXVK, Wine) y los dejará listos para jugar.";
+                                        font-size: 12px;
+                                        color: #a5adcb;
+                                        horizontal-alignment: center;
+                                        wrap: word-wrap;
+                                    }
+
+                                    Rectangle {
+                                        height: 46px;
+                                        border-radius: 8px;
+                                        background: install-touch.has-hover ? #8bd5ca : #a6da95;
+
+                                        install-touch := TouchArea {
+                                            clicked => { root.pick-zip-and-install(); }
+                                        }
+
+                                        HorizontalBox {
+                                            alignment: center;
+                                            Text {
+                                                text: "📥 Seleccionar e Instalar archivo .ZIP...";
+                                                font-size: 14px;
+                                                font-weight: 700;
+                                                color: #181926;
+                                            }
+                                        }
+                                    }
+
+                                    Rectangle {
+                                        height: 38px;
+                                        border-radius: 8px;
+                                        background: scan-touch.has-hover ? #363a4f : #24273a;
+                                        border-width: 1px;
+                                        border-color: #494d64;
+
+                                        scan-touch := TouchArea {
+                                            clicked => { root.auto-scan-zips(); }
+                                        }
+
+                                        HorizontalBox {
+                                            alignment: center;
+                                            Text {
+                                                text: "🔍 Buscar .ZIP automáticamente en Descargas";
+                                                font-size: 12px;
+                                                color: #8aadf4;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // Controls Guide
+                        Rectangle {
+                            background: #1e2030;
+                            border-radius: 8px;
+
+                            VerticalBox {
+                                padding: 10px;
+                                spacing: 4px;
+                                Text {
+                                    text: "Controles de juego (Soporte Dual Activo: Flechas o WASD + JKL):";
+                                    font-size: 11px;
+                                    font-weight: 700;
+                                    color: #eed49f;
+                                }
+                                Text {
+                                    text: "• Movimiento: Flechas o W-A-S-D   • Disparo: Z o J   • Bomba: X o K   • Modo Lento (Enfoque): Shift o L   • Pausa: Esc";
+                                    font-size: 11px;
+                                    color: #a5adcb;
+                                }
+                            }
+                        }
+
+                        // Status message footer
+                        Text {
+                            text: root.status-msg;
+                            font-size: 12px;
+                            color: root.is-status-error ? #ed8796 : #8bd5ca;
+                            horizontal-alignment: center;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MODAL OVERLAY: Native Game Configuration Panel
+    if root.show-config-modal : Rectangle {
+        background: #000000cc;
+
+        TouchArea {
+            // Click outside closes modal
+            clicked => { root.show-config-modal = false; }
+        }
+
+        Rectangle {
+            width: 580px;
+            max-height: 580px;
+            border-radius: 12px;
+            background: #1e2030;
+            border-width: 1px;
+            border-color: #494d64;
+
+            TouchArea {
+                // Prevent clicks inside modal from closing
+            }
+
+            ScrollView {
+                VerticalBox {
+                    padding: 20px;
+                    spacing: 14px;
+
+                    // Header
+                    HorizontalBox {
+                        alignment: space-between;
+                        Text {
+                            text: "⚙ Ajustes Avanzados: " + root.selected-game-title;
+                            font-size: 16px;
+                            font-weight: 800;
+                            color: #cad3f5;
+                            vertical-alignment: center;
+                        }
+                        Rectangle {
+                            width: 28px;
+                            height: 28px;
+                            border-radius: 14px;
+                            background: close-modal-touch.has-hover ? #ed8796 : #363a4f;
+
+                            close-modal-touch := TouchArea {
+                                clicked => { root.show-config-modal = false; }
+                            }
+
+                            Text {
+                                text: "✕";
+                                font-size: 14px;
+                                font-weight: 700;
+                                color: #cad3f5;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+                    }
+
+                    Rectangle { height: 1px; background: #363a4f; }
+
+                    // OPTION 1: Color Depth
+                    VerticalBox {
+                        spacing: 6px;
+                        padding: 0px;
+
+                        Text {
+                            text: "Profundidad de Color:";
+                            font-size: 12px;
+                            font-weight: 700;
+                            color: #cad3f5;
+                        }
+
+                        HorizontalBox {
+                            spacing: 8px;
+
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 2px;
+                                border-color: root.cfg-color-32bit ? #a6da95 : #363a4f;
+                                background: root.cfg-color-32bit ? #24273a : #181926;
+                                height: 34px;
+                                TouchArea { clicked => { root.cfg-color-32bit = true; } }
+                                HorizontalBox {
+                                    alignment: center;
+                                    Text {
+                                        text: "32-bit (Color Real / Recomendado)";
+                                        font-size: 11px;
+                                        font-weight: root.cfg-color-32bit ? 700 : 400;
+                                        color: root.cfg-color-32bit ? #a6da95 : #b8c0e0;
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 2px;
+                                border-color: !root.cfg-color-32bit ? #eed49f : #363a4f;
+                                background: !root.cfg-color-32bit ? #24273a : #181926;
+                                height: 34px;
+                                TouchArea { clicked => { root.cfg-color-32bit = false; } }
+                                HorizontalBox {
+                                    alignment: center;
+                                    Text {
+                                        text: "16-bit (Clásico Retro)";
+                                        font-size: 11px;
+                                        font-weight: !root.cfg-color-32bit ? 700 : 400;
+                                        color: !root.cfg-color-32bit ? #eed49f : #b8c0e0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // OPTION 2: FPS / Refresh Rate
+                    VerticalBox {
+                        spacing: 6px;
+                        padding: 0px;
+
+                        Text {
+                            text: "Tasa de Refresco / FPS:";
+                            font-size: 12px;
+                            font-weight: 700;
+                            color: #cad3f5;
+                        }
+
+                        HorizontalBox {
+                            spacing: 8px;
+
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 2px;
+                                border-color: root.cfg-fps-60 ? #8bd5ca : #363a4f;
+                                background: root.cfg-fps-60 ? #24273a : #181926;
+                                height: 34px;
+                                TouchArea { clicked => { root.cfg-fps-60 = true; } }
+                                HorizontalBox {
+                                    alignment: center;
+                                    Text {
+                                        text: "60 FPS (Estándar de Touhou)";
+                                        font-size: 11px;
+                                        font-weight: root.cfg-fps-60 ? 700 : 400;
+                                        color: root.cfg-fps-60 ? #8bd5ca : #b8c0e0;
+                                    }
+                                }
+                            }
+
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 2px;
+                                border-color: !root.cfg-fps-60 ? #eed49f : #363a4f;
+                                background: !root.cfg-fps-60 ? #24273a : #181926;
+                                height: 34px;
+                                TouchArea { clicked => { root.cfg-fps-60 = false; } }
+                                HorizontalBox {
+                                    alignment: center;
+                                    Text {
+                                        text: "30 FPS (Modo Ahorro / 1/2 Frame)";
+                                        font-size: 11px;
+                                        font-weight: !root.cfg-fps-60 ? 700 : 400;
+                                        color: !root.cfg-fps-60 ? #eed49f : #b8c0e0;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // OPTION 3: BGM Volume
+                    VerticalBox {
+                        spacing: 6px;
+                        padding: 0px;
+
+                        HorizontalBox {
+                            alignment: space-between;
+                            Text {
+                                text: "Volumen Música BGM:";
+                                font-size: 12px;
+                                font-weight: 700;
+                                color: #cad3f5;
+                            }
+                            Text {
+                                text: root.cfg-bgm-vol + "%";
+                                font-size: 12px;
+                                font-weight: 700;
+                                color: #a6da95;
+                            }
+                        }
+
+                        HorizontalBox {
+                            spacing: 8px;
+
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: root.cfg-bgm-vol == 100 ? #a6da95 : #363a4f;
+                                background: root.cfg-bgm-vol == 100 ? #24273a : #181926;
+                                height: 30px;
+                                TouchArea { clicked => { root.cfg-bgm-vol = 100; } }
+                                Text { text: "100%"; font-size: 11px; horizontal-alignment: center; vertical-alignment: center; color: #cad3f5; }
+                            }
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: root.cfg-bgm-vol == 80 ? #a6da95 : #363a4f;
+                                background: root.cfg-bgm-vol == 80 ? #24273a : #181926;
+                                height: 30px;
+                                TouchArea { clicked => { root.cfg-bgm-vol = 80; } }
+                                Text { text: "80%"; font-size: 11px; horizontal-alignment: center; vertical-alignment: center; color: #cad3f5; }
+                            }
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: root.cfg-bgm-vol == 50 ? #a6da95 : #363a4f;
+                                background: root.cfg-bgm-vol == 50 ? #24273a : #181926;
+                                height: 30px;
+                                TouchArea { clicked => { root.cfg-bgm-vol = 50; } }
+                                Text { text: "50%"; font-size: 11px; horizontal-alignment: center; vertical-alignment: center; color: #cad3f5; }
+                            }
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: root.cfg-bgm-vol == 0 ? #ed8796 : #363a4f;
+                                background: root.cfg-bgm-vol == 0 ? #24273a : #181926;
+                                height: 30px;
+                                TouchArea { clicked => { root.cfg-bgm-vol = 0; } }
+                                Text { text: "Silencio"; font-size: 11px; horizontal-alignment: center; vertical-alignment: center; color: #cad3f5; }
+                            }
+                        }
+                    }
+
+                    // OPTION 4: SE Volume
+                    VerticalBox {
+                        spacing: 6px;
+                        padding: 0px;
+
+                        HorizontalBox {
+                            alignment: space-between;
+                            Text {
+                                text: "Volumen Efectos de Sonido (SE):";
+                                font-size: 12px;
+                                font-weight: 700;
+                                color: #cad3f5;
+                            }
+                            Text {
+                                text: root.cfg-se-vol + "%";
+                                font-size: 12px;
+                                font-weight: 700;
+                                color: #8bd5ca;
+                            }
+                        }
+
+                        HorizontalBox {
+                            spacing: 8px;
+
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: root.cfg-se-vol == 100 ? #8bd5ca : #363a4f;
+                                background: root.cfg-se-vol == 100 ? #24273a : #181926;
+                                height: 30px;
+                                TouchArea { clicked => { root.cfg-se-vol = 100; } }
+                                Text { text: "100%"; font-size: 11px; horizontal-alignment: center; vertical-alignment: center; color: #cad3f5; }
+                            }
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: root.cfg-se-vol == 80 ? #8bd5ca : #363a4f;
+                                background: root.cfg-se-vol == 80 ? #24273a : #181926;
+                                height: 30px;
+                                TouchArea { clicked => { root.cfg-se-vol = 80; } }
+                                Text { text: "80%"; font-size: 11px; horizontal-alignment: center; vertical-alignment: center; color: #cad3f5; }
+                            }
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: root.cfg-se-vol == 50 ? #8bd5ca : #363a4f;
+                                background: root.cfg-se-vol == 50 ? #24273a : #181926;
+                                height: 30px;
+                                TouchArea { clicked => { root.cfg-se-vol = 50; } }
+                                Text { text: "50%"; font-size: 11px; horizontal-alignment: center; vertical-alignment: center; color: #cad3f5; }
+                            }
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: root.cfg-se-vol == 0 ? #ed8796 : #363a4f;
+                                background: root.cfg-se-vol == 0 ? #24273a : #181926;
+                                height: 30px;
+                                TouchArea { clicked => { root.cfg-se-vol = 0; } }
+                                Text { text: "Silencio"; font-size: 11px; horizontal-alignment: center; vertical-alignment: center; color: #cad3f5; }
+                            }
+                        }
+                    }
+
+                    // OPTION 5: Pad Deadzone / Sensitivity
+                    VerticalBox {
+                        spacing: 6px;
+                        padding: 0px;
+
+                        Text {
+                            text: "Sensibilidad de Mando / Joypad (Zona muerta):";
+                            font-size: 12px;
+                            font-weight: 700;
+                            color: #cad3f5;
+                        }
+
+                        HorizontalBox {
+                            spacing: 8px;
+
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: root.cfg-pad-deadzone == 400 ? #eed49f : #363a4f;
+                                background: root.cfg-pad-deadzone == 400 ? #24273a : #181926;
+                                height: 30px;
+                                TouchArea { clicked => { root.cfg-pad-deadzone = 400; } }
+                                Text { text: "Sensible (400)"; font-size: 11px; horizontal-alignment: center; vertical-alignment: center; color: #cad3f5; }
+                            }
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: root.cfg-pad-deadzone == 600 ? #8bd5ca : #363a4f;
+                                background: root.cfg-pad-deadzone == 600 ? #24273a : #181926;
+                                height: 30px;
+                                TouchArea { clicked => { root.cfg-pad-deadzone = 600; } }
+                                Text { text: "Normal (600 Default)"; font-size: 11px; horizontal-alignment: center; vertical-alignment: center; color: #cad3f5; }
+                            }
+                            Rectangle {
+                                border-radius: 6px;
+                                border-width: 1px;
+                                border-color: root.cfg-pad-deadzone == 800 ? #eed49f : #363a4f;
+                                background: root.cfg-pad-deadzone == 800 ? #24273a : #181926;
+                                height: 30px;
+                                TouchArea { clicked => { root.cfg-pad-deadzone = 800; } }
+                                Text { text: "Firme (800)"; font-size: 11px; horizontal-alignment: center; vertical-alignment: center; color: #cad3f5; }
+                            }
+                        }
+                    }
+
+                    Rectangle { height: 1px; background: #363a4f; }
+
+                    // Modal Action Buttons
+                    HorizontalBox {
+                        spacing: 10px;
+
+                        // Save Button
+                        Rectangle {
+                            height: 40px;
+                            border-radius: 8px;
+                            background: save-modal-touch.has-hover ? #8bd5ca : #a6da95;
+
+                            save-modal-touch := TouchArea {
+                                clicked => {
+                                    root.save-game-config(
+                                        root.selected-game-id,
+                                        root.selected-display-mode,
+                                        root.cfg-color-32bit,
+                                        root.cfg-fps-60,
+                                        root.cfg-bgm-vol,
+                                        root.cfg-se-vol,
+                                        root.cfg-pad-deadzone
+                                    );
+                                    root.show-config-modal = false;
+                                }
+                            }
+
+                            HorizontalBox {
+                                alignment: center;
+                                Text {
+                                    text: "💾 Guardar y Aplicar al Juego";
+                                    font-size: 13px;
+                                    font-weight: 700;
+                                    color: #181926;
+                                }
+                            }
+                        }
+
+                        // Legacy custom.exe fallback button
+                        Rectangle {
+                            height: 40px;
+                            border-radius: 8px;
+                            background: legacy-cfg-touch.has-hover ? #363a4f : #24273a;
+                            border-width: 1px;
+                            border-color: #494d64;
+
+                            legacy-cfg-touch := TouchArea {
+                                clicked => {
+                                    root.open-config(root.selected-game-id);
+                                }
+                            }
+
+                            HorizontalBox {
+                                alignment: center;
+                                Text {
+                                    text: "🛠️ Abrir custom.exe clásico";
+                                    font-size: 11px;
+                                    color: #a5adcb;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // MODAL OVERLAY: Uninstall Instance Confirmation
+    if root.show-uninstall-modal : Rectangle {
+        background: #000000cc;
+
+        TouchArea {
+            // Click outside closes modal
+            clicked => { root.show-uninstall-modal = false; }
+        }
+
+        Rectangle {
+            width: 480px;
+            border-radius: 12px;
+            background: #1e2030;
+            border-width: 1px;
+            border-color: #ed8796;
+
+            TouchArea {
+                // Prevent click inside from closing
+            }
+
+            VerticalBox {
+                padding: 24px;
+                spacing: 16px;
+
+                // Header
+                HorizontalBox {
+                    spacing: 12px;
+                    alignment: start;
+
+                    Text {
+                        text: "🗑️";
+                        font-size: 24px;
+                        vertical-alignment: center;
+                    }
+
+                    VerticalLayout {
+                        Text {
+                            text: "Desinstalar Instancia de Juego";
+                            font-size: 16px;
+                            font-weight: 800;
+                            color: #ed8796;
+                        }
+                        Text {
+                            text: root.uninstall-game-name;
+                            font-size: 13px;
+                            color: #cad3f5;
+                        }
+                    }
+                }
+
+                Rectangle { height: 1px; background: #363a4f; }
+
+                Text {
+                    text: "Esta acción eliminará los archivos de instalación del juego y liberará aproximadamente " + root.uninstall-size-str + " de espacio en tu disco.";
+                    font-size: 13px;
+                    color: #cad3f5;
+                    wrap: word-wrap;
+                }
+
+                // Keep saves checkbox toggle
+                Rectangle {
+                    background: #24273a;
+                    border-radius: 8px;
+                    border-width: 1px;
+                    border-color: #363a4f;
+                    height: 54px;
+
+                    TouchArea {
+                        clicked => { root.uninstall-keep-saves = !root.uninstall-keep-saves; }
+                    }
+
+                    HorizontalBox {
+                        padding-left: 12px;
+                        padding-right: 12px;
+                        spacing: 12px;
+                        alignment: start;
+
+                        Rectangle {
+                            width: 22px;
+                            height: 22px;
+                            border-radius: 4px;
+                            border-width: 2px;
+                            border-color: root.uninstall-keep-saves ? #a6da95 : #6e738d;
+                            background: root.uninstall-keep-saves ? #a6da95 : #181926;
+                            vertical-stretch: 0;
+
+                            Text {
+                                text: root.uninstall-keep-saves ? "✓" : "";
+                                font-weight: 800;
+                                font-size: 13px;
+                                color: #181926;
+                                horizontal-alignment: center;
+                                vertical-alignment: center;
+                            }
+                        }
+
+                        VerticalLayout {
+                            alignment: center;
+                            Text {
+                                text: "Respaldar partidas guardadas y replays";
+                                font-size: 12px;
+                                font-weight: 700;
+                                color: #cad3f5;
+                            }
+                            Text {
+                                text: "Se restaurarán automáticamente si vuelves a instalar el juego";
+                                font-size: 10px;
+                                color: #a5adcb;
+                            }
+                        }
+                    }
+                }
+
+                Rectangle { height: 1px; background: #363a4f; }
+
+                // Actions row
+                HorizontalBox {
+                    spacing: 12px;
+
+                    // Cancel button
+                    Rectangle {
+                        height: 40px;
+                        border-radius: 8px;
+                        background: cancel-del-touch.has-hover ? #363a4f : #24273a;
+                        border-width: 1px;
+                        border-color: #494d64;
+
+                        cancel-del-touch := TouchArea {
+                            clicked => { root.show-uninstall-modal = false; }
+                        }
+
+                        HorizontalBox {
+                            alignment: center;
+                            Text {
+                                text: "Cancelar";
+                                font-size: 13px;
+                                color: #cad3f5;
+                            }
+                        }
+                    }
+
+                    // Confirm Uninstall button
+                    Rectangle {
+                        height: 40px;
+                        border-radius: 8px;
+                        background: confirm-del-touch.has-hover ? #ee99a0 : #ed8796;
+
+                        confirm-del-touch := TouchArea {
+                            clicked => {
+                                root.show-uninstall-modal = false;
+                                root.confirm-uninstall(root.selected-game-id, root.uninstall-keep-saves);
+                            }
+                        }
+
+                        HorizontalBox {
+                            alignment: center;
+                            spacing: 6px;
+                            Text {
+                                text: "🗑️ Confirmar y Desinstalar";
+                                font-size: 13px;
+                                font-weight: 700;
+                                color: #181926;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
