@@ -114,17 +114,29 @@ pub fn launch_game(
 
     let (screen_w, screen_h) = detect_screen_resolution();
 
+    let (game_w, game_h) = match game.id {
+        // PC-98 games (TH01 - TH05): native 640x480
+        "th01" | "th02" | "th03" | "th04" | "th05" => (640, 480),
+        // Classic Windows games (TH06 - TH09.5, TH07.5, TH10.5, TH12.3): native 640x480
+        "th06" | "th07" | "th075" | "th08" | "th09" | "th095" | "th105" | "th123" => (640, 480),
+        // 16:9 widescreen fighting & action spin-offs (TH13.5, TH14.5, TH15.5, TH17.5): 1280x720
+        "th135" | "th145" | "th155" | "th175" => (1280, 720),
+        // Modern mainline games (TH10 - TH20): native 1280x960
+        _ => (1280, 960),
+    };
+
     let mut cmd = if is_fullscreen && has_gamescope && mode != "config" {
         let mut gs = Command::new("gamescope");
         gs.arg("-w")
-            .arg("1280")
+            .arg(game_w.to_string())
             .arg("-h")
-            .arg("960")
+            .arg(game_h.to_string())
             .arg("-W")
             .arg(screen_w.to_string())
             .arg("-H")
             .arg(screen_h.to_string())
-            .arg("-f");
+            .arg("-f")
+            .arg("--force-windows-fullscreen");
 
         if config.display_mode == "fullscreen_int" {
             gs.arg("-S").arg("integer").arg("-F").arg("nearest");

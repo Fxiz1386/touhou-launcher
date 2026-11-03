@@ -167,6 +167,7 @@ const DEFAULT_TH06_CFG: [u8; 56] = [
 pub fn apply_game_config(config: &GameConfig, game_dir: &Path) -> Result<(), String> {
     match config.game_id.as_str() {
         "th06" => apply_th06_config(config, game_dir),
+        "th07" | "th08" => apply_th07_config(config, game_dir),
         "th13" => apply_th13_config(config, game_dir),
         _ => apply_th12_config(config, game_dir),
     }
@@ -313,11 +314,11 @@ fn apply_th06_config(config: &GameConfig, game_dir: &Path) -> Result<(), String>
     // window_960: 960x720 standard window with titlebar
     // window_640: 640x480 standard window with titlebar
     let (width, height, titlebar, x, y) = match config.display_mode.as_str() {
-        "fullscreen_fsr" | "fullscreen_int" => (1280, 960, 0, 0, 0),
+        "fullscreen_fsr" | "fullscreen_int" => (640, 480, 0, 0, 0),
         "window_1280" => (1280, 960, 1, 0, 0),
         "window_960" => (960, 720, 1, 0, 0),
         "window_640" => (640, 480, 1, 0, 0),
-        _ => (1280, 960, 1, 0, 0),
+        _ => (640, 480, 0, 0, 0),
     };
 
     let fps = if config.fps_60 { 60 } else { 30 };
@@ -408,6 +409,84 @@ BugFixTh10Power3 = 1
         data[0x23] = dz_bytes[1];
 
         let _ = fs::write(&p, &data);
+    }
+
+    Ok(())
+}
+
+fn apply_th07_config(config: &GameConfig, game_dir: &Path) -> Result<(), String> {
+    // 1. Sync vpatch.ini if present to ensure 640x480 at (0, 0) without titlebar in fullscreen
+    let (width, height, titlebar, x, y) = match config.display_mode.as_str() {
+        "fullscreen_fsr" | "fullscreen_int" => (640, 480, 0, 0, 0),
+        "window_1280" => (1280, 960, 1, 0, 0),
+        "window_960" => (960, 720, 1, 0, 0),
+        "window_640" => (640, 480, 1, 0, 0),
+        _ => (640, 480, 0, 0, 0),
+    };
+    let fps = if config.fps_60 { 60 } else { 30 };
+
+    let vpatch_path = game_dir.join("vpatch.ini");
+    if vpatch_path.exists() {
+        let vpatch_content = format!(
+r#"[Window]
+AskWindowMode = 0
+enabled = 1
+X = {}
+Y = {}
+Width = {}
+Height = {}
+TitleBar = {}
+AlwaysOnTop = 0
+
+[Option]
+Vsync = 0
+SleepType = 1
+BltPrepareTime = 4
+AutoBltPrepareTime = 1
+GameFPS = {}
+ReplaySkipFPS = 240
+ReplaySlowFPS = 30
+CalcFPS = 1
+AlwaysBlt = 0
+BugFixCherry = 1
+BugFixTh10Power3 = 1
+"#,
+            x, y, width, height, titlebar, fps
+        );
+        let _ = fs::write(&vpatch_path, vpatch_content);
+    }
+
+    // 2. Ensure th07.cfg / th08.cfg and Japanese equivalents have proper Window mode (0x01) and pad deadzone
+    let cfg_name = format!("{}.cfg", config.game_id);
+    let jp_cfg_name = match config.game_id.as_str() {
+        "th07" => "東方妖々夢.cfg",
+        "th08" => "東方永夜抄.cfg",
+        _ => "",
+    };
+
+    let mut target_names = vec![cfg_name.as_str()];
+    if !jp_cfg_name.is_empty() {
+        target_names.push(jp_cfg_name);
+    }
+
+    for name in target_names {
+        let p = game_dir.join(name);
+        if p.exists() {
+            if let Ok(mut data) = fs::read(&p) {
+                if data.len() >= 40 {
+                    let dz_bytes = config.pad_deadzone.to_le_bytes();
+                    data[0x18] = dz_bytes[0];
+                    data[0x19] = dz_bytes[1];
+                    data[0x1a] = dz_bytes[0];
+                    data[0x1b] = dz_bytes[1];
+
+                    // Byte 0x26: Window mode (0x01 = Windowed so Gamescope handles fullscreen scaling)
+                    data[0x26] = 0x01;
+
+                    let _ = fs::write(&p, &data);
+                }
+            }
+        }
     }
 
     Ok(())

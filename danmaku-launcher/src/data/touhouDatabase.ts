@@ -352,7 +352,7 @@ export const INITIAL_TOUHOU_GAMES: TouhouGame[] = [
     ],
     replays: [],
     config: {
-      resolution: '960x720',
+      resolution: '640x480',
       fullscreen: false,
       vpatch: true,
       fps60Lock: true,
