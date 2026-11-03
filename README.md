@@ -60,12 +60,30 @@ Hay dos formas:
 
 El lanzador detecta la versión, configura el perfil de Wine y aplica automáticamente las traducciones y el mapeo de teclas.
 
+## Actualizar el lanzador
+
+Para bajar las últimas mejoras y parches de GitHub, solo ejecuta:
+```bash
+./update.sh
+```
+El script descarga los cambios, recompila lo necesario y refresca el acceso directo sin tocar tus juegos ni tus partidas guardadas.
+
+## Desinstalar el lanzador
+
+Si quieres quitar el lanzador del sistema:
+```bash
+./uninstall.sh
+```
+El desinstalador quita los accesos directos del menú de aplicaciones, borra el prefijo de Wine y te preguntará si deseas conservar o borrar tus juegos y récords guardados.
+
 ## Estructura del proyecto
 
-- `danmaku-launcher/`: Interfaz de usuario (Electron, React, Tailwind CSS).
-- `th12-launcher/`: Backend en Rust para detección de juegos, lectura de récords, parches y ejecución de Wine.
-- `launch.sh`: Script principal de arranque con detección de entorno.
-- `install.sh`: Script de instalación y configuración de accesos directos `.desktop`.
+- `danmaku-launcher/`: Interfaz gráfica (Electron + React).
+- `th12-launcher/`: Backend en Rust (control de Wine, Gamescope, descompresión y parches).
+- `launch.sh`: Script para iniciar el programa.
+- `install.sh`: Instalador inicial y configuración de accesos directos.
+- `update.sh`: Script para actualizar a la última versión de GitHub.
+- `uninstall.sh`: Script para desinstalar el lanzador limpiamente.
 
 ## Licencia
 

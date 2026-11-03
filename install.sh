@@ -33,35 +33,39 @@ install_system_packages() {
     fi
 }
 
-echo "[1/5] Comprobando dependencias del sistema..."
-missing_pkgs=()
+if [[ "$*" != *"--skip-deps"* ]]; then
+    echo "[1/5] Comprobando dependencias del sistema..."
+    missing_pkgs=()
 
-if ! command -v wine >/dev/null 2>&1; then
-    echo "✗ Wine no detectado."
-    missing_pkgs+=("wine")
+    if ! command -v wine >/dev/null 2>&1; then
+        echo "✗ Wine no detectado."
+        missing_pkgs+=("wine")
+    else
+        echo "✓ Wine detectado: $(wine --version)"
+    fi
+
+    if ! command -v node >/dev/null 2>&1; then
+        echo "✗ Node.js no detectado."
+        missing_pkgs+=("nodejs")
+    else
+        echo "✓ Node.js detectado: $(node --version)"
+    fi
+
+    if ! command -v npm >/dev/null 2>&1; then
+        missing_pkgs+=("npm")
+    fi
+
+    if command -v gamescope >/dev/null 2>&1; then
+        echo "✓ Gamescope detectado (escalado FSR disponible)."
+    else
+        echo "ℹ Gamescope no detectado (opcional, para escalado FSR a pantalla completa)."
+    fi
+
+    if [ ${#missing_pkgs[@]} -gt 0 ]; then
+        install_system_packages "${missing_pkgs[@]}"
+    fi
 else
-    echo "✓ Wine detectado: $(wine --version)"
-fi
-
-if ! command -v node >/dev/null 2>&1; then
-    echo "✗ Node.js no detectado."
-    missing_pkgs+=("nodejs")
-else
-    echo "✓ Node.js detectado: $(node --version)"
-fi
-
-if ! command -v npm >/dev/null 2>&1; then
-    missing_pkgs+=("npm")
-fi
-
-if command -v gamescope >/dev/null 2>&1; then
-    echo "✓ Gamescope detectado (escalado FSR disponible)."
-else
-    echo "ℹ Gamescope no detectado (opcional, para escalado FSR a pantalla completa)."
-fi
-
-if [ ${#missing_pkgs[@]} -gt 0 ]; then
-    install_system_packages "${missing_pkgs[@]}"
+    echo "[1/5] Omitiendo comprobación de paquetes del sistema (--skip-deps)."
 fi
 
 # 2. Dependencias de la interfaz y compilación
@@ -91,6 +95,8 @@ fi
 # 3. Permisos de ejecutables
 echo "[3/5] Asignando permisos..."
 chmod +x "$DIR/launch.sh"
+[ -f "$DIR/update.sh" ] && chmod +x "$DIR/update.sh"
+[ -f "$DIR/uninstall.sh" ] && chmod +x "$DIR/uninstall.sh"
 chmod +x "$DIR/touhou-launcher"
 [ -f "$DIR/th12-launcher-bin" ] && chmod +x "$DIR/th12-launcher-bin"
 
