@@ -268,9 +268,13 @@ ipcMain.handle('pick-zip-file', async () => {
   return null;
 });
 
-ipcMain.handle('install-zip', async (_event, zipPath) => {
+ipcMain.handle('install-zip', async (_event, zipPath, password) => {
   try {
-    const { stdout } = await runCli(['install', zipPath]);
+    const args = ['install', zipPath];
+    if (password && typeof password === 'string' && password.trim().length > 0) {
+      args.push(password.trim());
+    }
+    const { stdout } = await runCli(args);
     return JSON.parse(stdout);
   } catch (err) {
     console.error('install-zip error:', err);

@@ -573,6 +573,10 @@ export default function App() {
                     { error: res.error || 'Error al descomprimir archivo' },
                     'error'
                   );
+
+                  if (res.error && (res.error.toLowerCase().includes('contraseña') || res.error.toLowerCase().includes('password'))) {
+                    setIsZipInstallerOpen(true);
+                  }
                 }
               } catch (err) {
                 updateIpcLog(logId, {

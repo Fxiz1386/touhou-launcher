@@ -206,7 +206,8 @@ fn run_cli(args: &[String]) -> Result<(), slint::PlatformError> {
         "install" => {
             if let Some(zip_path_str) = args.get(1) {
                 let zip_path = PathBuf::from(zip_path_str);
-                match installer::install_zip(&zip_path, &games_dir) {
+                let password = args.get(2).map(|s| s.as_str());
+                match installer::install_zip(&zip_path, &games_dir, password) {
                     Ok(result) => {
                         println!("{}", serde_json::json!({
                             "success": true,
@@ -562,7 +563,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 ui.set_is_status_error(false);
             }
 
-            match install_zip(&path, &games_dir_clone) {
+            match install_zip(&path, &games_dir_clone, None) {
                 Ok(result) => {
                     if let Some(ui) = ui_handle.upgrade() {
                         let s = settings_clone.lock().unwrap();
@@ -596,7 +597,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 ui.set_status_msg(format!("Instalando detectado: {} ({})", first.filename, first.game_title).into());
                 ui.set_is_status_error(false);
 
-                match install_zip(&first.zip_path, &games_dir_clone) {
+                match install_zip(&first.zip_path, &games_dir_clone, None) {
                     Ok(result) => {
                         let s = settings_clone.lock().unwrap();
                         update_ui_for_game(&ui, &result.game_id, &games_dir_clone, &s);
@@ -670,7 +671,7 @@ fn main() -> Result<(), slint::PlatformError> {
             ui.set_is_status_error(false);
         }
 
-        match installer::install_zip(&zip_path, &games_dir_clone) {
+        match installer::install_zip(&zip_path, &games_dir_clone, None) {
             Ok(result) => {
                 if let Some(ui) = ui_handle.upgrade() {
                     let s = settings_clone.lock().unwrap();

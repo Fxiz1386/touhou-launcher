@@ -28,44 +28,67 @@ pub fn detect_game_in_archive(path: &Path) -> Result<Option<&'static GameDef>, S
         return Ok(None);
     }
 
+    fn matches_rule_pattern(text: &str, pat: &str) -> bool {
+        let mut start = 0;
+        while let Some(pos) = text[start..].find(pat) {
+            let abs_pos = start + pos;
+            let after_idx = abs_pos + pat.len();
+            let ends_with_digit = pat.chars().last().map(|c| c.is_ascii_digit()).unwrap_or(false);
+            let ok_after = if ends_with_digit && after_idx < text.len() {
+                let next_char = text[after_idx..].chars().next().unwrap_or(' ');
+                !next_char.is_ascii_digit() && next_char != '.'
+            } else {
+                true
+            };
+
+            if ok_after {
+                return true;
+            }
+            start = abs_pos + 1;
+        }
+        false
+    }
+
     let rules: &[(&[&str], &str)] = &[
-        (&["th01", "touhou 1", "touhou 01", "highly responsive to prayers", "reiiden"], "th01"),
-        (&["th02", "touhou 2", "touhou 02", "story of eastern wonderland", "fuumaroku"], "th02"),
-        (&["th03", "touhou 3", "touhou 03", "phantasmagoria of dim.dream", "yumejikuu"], "th03"),
-        (&["th04", "touhou 4", "touhou 04", "lotus land story", "gensokyo"], "th04"),
-        (&["th05", "touhou 5", "touhou 05", "mystic square", "kaikidan"], "th05"),
-        (&["th06", "touhou 6", "touhou 06", "scarlet devil", "koumakyou"], "th06"),
-        (&["th075", "touhou 7.5", "touhou 07.5", "immaterial and missing power", "suimusou"], "th075"),
-        (&["th07", "touhou 7", "touhou 07", "cherry blossom", "youyoumu"], "th07"),
-        (&["th08", "touhou 8", "touhou 08", "imperishable night", "eiyashou"], "th08"),
-        (&["th095", "touhou 9.5", "shoot the bullet", "bohemian"], "th095"),
-        (&["th09", "touhou 9", "touhou 09", "flower view", "kaeizuka"], "th09"),
-        (&["th105", "touhou 10.5", "scarlet weather rhapsody", "hisouten"], "th105"),
-        (&["th10", "touhou 10", "mountain of faith", "fuujinroku"], "th10"),
-        (&["th11", "touhou 11", "subterranean animism", "chireiden"], "th11"),
-        (&["th123", "touhou 12.3", "hisoutensoku"], "th123"),
-        (&["th125", "touhou 12.5", "double spoiler"], "th125"),
-        (&["th128", "touhou 12.8", "fairy wars", "great fairy wars"], "th128"),
-        (&["th12", "touhou 12", "fantastic object", "seirensen"], "th12"),
-        (&["th135", "touhou 13.5", "hopeless masquerade", "shinkirou"], "th135"),
-        (&["th13", "touhou 13", "ten desires", "shinreibyou"], "th13"),
-        (&["th143", "touhou 14.3", "impossible spell card"], "th143"),
-        (&["th145", "touhou 14.5", "urban legend in limbo", "shinpiroku"], "th145"),
-        (&["th14", "touhou 14", "double dealing character", "kishinjou"], "th14"),
-        (&["th155", "touhou 15.5", "antinomy of common flowers", "hyouibana"], "th155"),
-        (&["th15", "touhou 15", "legacy of lunatic kingdom", "kanjuden"], "th15"),
-        (&["th165", "touhou 16.5", "violet detector"], "th165"),
-        (&["th16", "touhou 16", "hidden star in four seasons", "tenkuushou"], "th16"),
+        // Spin-offs first (to prevent th075 matching th07, etc.)
+        (&["th185", "touhou 18.5", "100th black market", "black market"], "th185"),
         (&["th175", "touhou 17.5", "sunken fossil world", "gouyoku ibun"], "th175"),
-        (&["th17", "touhou 17", "wily beast and weakest creature", "kikeijuu"], "th17"),
-        (&["th185", "touhou 18.5", "100th black market"], "th185"),
-        (&["th18", "touhou 18", "unconnected marketeers", "kouryuudou"], "th18"),
-        (&["th19", "touhou 19", "unfinished dream of all living ghost", "juuouen"], "th19"),
+        (&["th165", "touhou 16.5", "violet detector", "hifuu nightmare diary"], "th165"),
+        (&["th155", "touhou 15.5", "antinomy of common flowers", "hyouibana"], "th155"),
+        (&["th145", "touhou 14.5", "urban legend in limbo", "shinpiroku"], "th145"),
+        (&["th143", "touhou 14.3", "impossible spell card", "danmaku amanojaku"], "th143"),
+        (&["th135", "touhou 13.5", "hopeless masquerade", "shinkirou"], "th135"),
+        (&["th128", "touhou 12.8", "fairy wars", "great fairy wars", "yousei daisensou"], "th128"),
+        (&["th125", "touhou 12.5", "double spoiler"], "th125"),
+        (&["th123", "touhou 12.3", "hisoutensoku"], "th123"),
+        (&["th105", "touhou 10.5", "scarlet weather rhapsody", "hisouten"], "th105"),
+        (&["th095", "touhou 9.5", "shoot the bullet", "bohemian"], "th095"),
+        (&["th075", "touhou 7.5", "touhou 07.5", "immaterial and missing power", "suimusou"], "th075"),
+        // Mainline series in reverse order (to prevent th2 matching th20, th1 matching th12, etc.)
         (&["th20", "touhou 20", "fossilized wonders", "musouroku"], "th20"),
+        (&["th19", "touhou 19", "unfinished dream of all living ghost", "juuouen"], "th19"),
+        (&["th18", "touhou 18", "unconnected marketeers", "kouryuudou"], "th18"),
+        (&["th17", "touhou 17", "wily beast and weakest creature", "kikeijuu"], "th17"),
+        (&["th16", "touhou 16", "hidden star in four seasons", "tenkuushou"], "th16"),
+        (&["th15", "touhou 15", "legacy of lunatic kingdom", "kanjuden"], "th15"),
+        (&["th14", "touhou 14", "double dealing character", "kishinjou"], "th14"),
+        (&["th13", "touhou 13", "ten desires", "shinreibyou"], "th13"),
+        (&["th12", "touhou 12", "fantastic object", "seirensen"], "th12"),
+        (&["th11", "touhou 11", "subterranean animism", "chireiden"], "th11"),
+        (&["th10", "touhou 10", "mountain of faith", "fuujinroku"], "th10"),
+        (&["th09", "touhou 9", "touhou 09", "flower view", "kaeizuka"], "th09"),
+        (&["th08", "touhou 8", "touhou 08", "imperishable night", "eiyashou"], "th08"),
+        (&["th07", "touhou 7", "touhou 07", "cherry blossom", "youyoumu"], "th07"),
+        (&["th06", "touhou 6", "touhou 06", "scarlet devil", "koumakyou"], "th06"),
+        (&["th05", "touhou 5", "touhou 05", "mystic square", "kaikidan"], "th05"),
+        (&["th04", "touhou 4", "touhou 04", "lotus land story", "gensokyo"], "th04"),
+        (&["th03", "touhou 3", "touhou 03", "phantasmagoria of dim.dream", "yumejikuu"], "th03"),
+        (&["th02", "touhou 2", "touhou 02", "story of eastern wonderland", "fuumaroku"], "th02"),
+        (&["th01", "touhou 1", "touhou 01", "highly responsive to prayers", "reiiden"], "th01"),
     ];
 
     for (patterns, id) in rules {
-        if patterns.iter().any(|pat| name_lower.contains(pat)) {
+        if patterns.iter().any(|pat| matches_rule_pattern(&name_lower, pat)) {
             if let Some(game) = GAMES.iter().find(|g| g.id == *id) {
                 return Ok(Some(game));
             }
@@ -99,7 +122,165 @@ pub fn detect_game_in_archive(path: &Path) -> Result<Option<&'static GameDef>, S
     Ok(None)
 }
 
-pub fn install_zip(zip_path: &Path, games_dir: &Path) -> Result<InstallResult, String> {
+fn count_extracted_files(dir: &Path) -> usize {
+    let mut count = 0;
+    if let Ok(entries) = fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_file() {
+                count += 1;
+            } else if path.is_dir() {
+                count += count_extracted_files(&path);
+            }
+        }
+    }
+    count
+}
+
+fn try_extract_with_7z(
+    archive_path: &Path,
+    target_dir: &Path,
+    custom_password: Option<&str>,
+) -> Result<usize, String> {
+    let mut passwords: Vec<&str> = Vec::new();
+    if let Some(pwd) = custom_password {
+        let trimmed = pwd.trim();
+        if !trimmed.is_empty() {
+            passwords.push(trimmed);
+        }
+    }
+    // Automatically try known Touhou passwords (Moriya Shrine standard passwords)
+    // and empty password for unencrypted archives
+    for default_pwd in &["moriyashrine.org", "moriyashrine", ""] {
+        if !passwords.contains(default_pwd) {
+            passwords.push(default_pwd);
+        }
+    }
+
+    let mut last_err = String::new();
+    let mut password_needed = false;
+
+    for pwd in &passwords {
+        let mut cmd = std::process::Command::new("7z");
+        cmd.arg("x")
+            .arg("-y")
+            .arg(format!("-p{}", pwd))
+            .arg(format!("-o{}", target_dir.display()))
+            .arg(archive_path);
+
+        match cmd.output() {
+            Ok(output) => {
+                if output.status.success() {
+                    let count = count_extracted_files(target_dir);
+                    return Ok(count);
+                } else {
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    let combined = format!("{}\n{}", stderr, stdout);
+
+                    if combined.contains("Wrong password")
+                        || combined.contains("Data Error (password?)")
+                        || combined.contains("Can not open encrypted")
+                        || combined.contains("Enter password")
+                    {
+                        password_needed = true;
+                    }
+                    last_err = format!("Error 7z: {}", stderr.trim());
+                }
+            }
+            Err(e) => {
+                return Err(format!("NOT_FOUND: {}", e));
+            }
+        }
+    }
+
+    // Clean up partial failed extractions
+    if let Ok(entries) = fs::read_dir(target_dir) {
+        if entries.count() == 0 {
+            let _ = fs::remove_dir(target_dir);
+        }
+    }
+
+    if password_needed {
+        Err("El archivo está protegido con contraseña. Por favor introduce la contraseña correcta para descomprimirlo.".to_string())
+    } else {
+        Err(if last_err.is_empty() {
+            "Error desconocido al descomprimir con 7z.".to_string()
+        } else {
+            last_err
+        })
+    }
+}
+
+fn extract_with_zip_crate(zip_path: &Path, target_dir: &Path) -> Result<usize, String> {
+    let file = File::open(zip_path).map_err(|e| format!("Error abriendo ZIP: {}", e))?;
+    let mut archive = ZipArchive::new(file).map_err(|e| format!("Error leyendo ZIP: {}", e))?;
+
+    // Determine if there is a common root directory in the zip
+    let mut prefix_to_strip = None;
+    if archive.len() > 0 {
+        let first_name = archive.by_index(0).map(|f| f.name().to_string()).unwrap_or_default();
+        if let Some(slash_idx) = first_name.find('/') {
+            let candidate = &first_name[..=slash_idx];
+            let all_have_prefix = (0..archive.len()).all(|i| {
+                if let Ok(f) = archive.by_index(i) {
+                    f.name().starts_with(candidate)
+                } else {
+                    false
+                }
+            });
+            if all_have_prefix {
+                prefix_to_strip = Some(candidate.to_string());
+            }
+        }
+    }
+
+    let mut count = 0;
+    for i in 0..archive.len() {
+        let mut entry = match archive.by_index(i) {
+            Ok(e) => e,
+            Err(zip::result::ZipError::UnsupportedArchive(msg)) if msg.contains("Password") => {
+                return Err("El archivo ZIP está protegido con contraseña. Instala '7z' o proporciona la contraseña.".to_string());
+            }
+            Err(e) => return Err(format!("Error leyendo entrada ZIP: {}", e)),
+        };
+
+        let raw_name = entry.name().to_string();
+        let rel_name = if let Some(ref prefix) = prefix_to_strip {
+            raw_name.strip_prefix(prefix).unwrap_or(&raw_name)
+        } else {
+            &raw_name
+        };
+
+        if rel_name.is_empty() || rel_name.contains("..") {
+            continue;
+        }
+
+        let outpath = target_dir.join(rel_name);
+
+        if entry.is_dir() {
+            fs::create_dir_all(&outpath).map_err(|e| format!("Error creando subdirectorio: {}", e))?;
+        } else {
+            if let Some(parent) = outpath.parent() {
+                if !parent.exists() {
+                    fs::create_dir_all(parent).map_err(|e| format!("Error creando directorio padre: {}", e))?;
+                }
+            }
+
+            let mut outfile = File::create(&outpath).map_err(|e| format!("Error creando archivo {}: {}", outpath.display(), e))?;
+            io::copy(&mut entry, &mut outfile).map_err(|e| format!("Error extrayendo {}: {}", outpath.display(), e))?;
+            count += 1;
+        }
+    }
+
+    Ok(count)
+}
+
+pub fn install_zip(
+    zip_path: &Path,
+    games_dir: &Path,
+    custom_password: Option<&str>,
+) -> Result<InstallResult, String> {
     let game = detect_game_in_archive(zip_path)?
         .ok_or_else(|| "No se reconoció qué juego de Touhou contiene este archivo.".to_string())?;
 
@@ -107,80 +288,15 @@ pub fn install_zip(zip_path: &Path, games_dir: &Path) -> Result<InstallResult, S
     fs::create_dir_all(&target_dir).map_err(|e| format!("Error creando carpeta de destino: {}", e))?;
 
     let ext = zip_path.extension().and_then(|e| e.to_str()).unwrap_or("").to_lowercase();
-    let mut count = 0;
 
-    if ext == "7z" || ext == "rar" {
-        // Use 7z command line to extract
-        let output = std::process::Command::new("7z")
-            .arg("x")
-            .arg("-y")
-            .arg(format!("-o{}", target_dir.display()))
-            .arg(zip_path)
-            .output()
-            .map_err(|e| format!("Error al ejecutar 7z: {}", e))?;
-
-        if !output.status.success() {
-            return Err(format!("Error extrayendo archivo 7z: {}", String::from_utf8_lossy(&output.stderr)));
+    // Primary extraction with 7z (supports .zip, .7z, .rar, ZipCrypto, AES-256 and Moriya passwords)
+    let count = match try_extract_with_7z(zip_path, &target_dir, custom_password) {
+        Ok(c) => c,
+        Err(err) if err.starts_with("NOT_FOUND:") && ext == "zip" => {
+            extract_with_zip_crate(zip_path, &target_dir)?
         }
-
-        // Count extracted items
-        if let Ok(entries) = fs::read_dir(&target_dir) {
-            count = entries.count();
-        }
-    } else {
-        let file = File::open(zip_path).map_err(|e| format!("Error abriendo ZIP: {}", e))?;
-        let mut archive = ZipArchive::new(file).map_err(|e| format!("Error leyendo ZIP: {}", e))?;
-
-        // Determine if there is a common root directory in the zip
-        let mut prefix_to_strip = None;
-        if archive.len() > 0 {
-            let first_name = archive.by_index(0).map(|f| f.name().to_string()).unwrap_or_default();
-            if let Some(slash_idx) = first_name.find('/') {
-                let candidate = &first_name[..=slash_idx];
-                let all_have_prefix = (0..archive.len()).all(|i| {
-                    if let Ok(f) = archive.by_index(i) {
-                        f.name().starts_with(candidate)
-                    } else {
-                        false
-                    }
-                });
-                if all_have_prefix {
-                    prefix_to_strip = Some(candidate.to_string());
-                }
-            }
-        }
-
-        for i in 0..archive.len() {
-            let mut entry = archive.by_index(i).map_err(|e| format!("Error leyendo entrada ZIP: {}", e))?;
-            
-            let raw_name = entry.name().to_string();
-            let rel_name = if let Some(ref prefix) = prefix_to_strip {
-                raw_name.strip_prefix(prefix).unwrap_or(&raw_name)
-            } else {
-                &raw_name
-            };
-
-            if rel_name.is_empty() || rel_name.contains("..") {
-                continue;
-            }
-
-            let outpath = target_dir.join(rel_name);
-
-            if entry.is_dir() {
-                fs::create_dir_all(&outpath).map_err(|e| format!("Error creando subdirectorio: {}", e))?;
-            } else {
-                if let Some(parent) = outpath.parent() {
-                    if !parent.exists() {
-                        fs::create_dir_all(parent).map_err(|e| format!("Error creando directorio padre: {}", e))?;
-                    }
-                }
-
-                let mut outfile = File::create(&outpath).map_err(|e| format!("Error creando archivo {}: {}", outpath.display(), e))?;
-                io::copy(&mut entry, &mut outfile).map_err(|e| format!("Error extrayendo {}: {}", outpath.display(), e))?;
-                count += 1;
-            }
-        }
-    }
+        Err(err) => return Err(err),
+    };
 
     // Flatten any nested subdirectory created by archive extraction
     flatten_nested_directory(&target_dir);

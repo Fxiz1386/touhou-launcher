@@ -5,7 +5,7 @@ contextBridge.exposeInMainWorld('danmakuAPI', {
   launchGame: (payload) => ipcRenderer.invoke('launch-game', payload),
   saveConfig: (payload) => ipcRenderer.invoke('save-config', payload),
   openFolder: (gameId) => ipcRenderer.invoke('open-folder', gameId),
-  installZip: (zipPath) => ipcRenderer.invoke('install-zip', zipPath),
+  installZip: (zipPath, password) => ipcRenderer.invoke('install-zip', zipPath, password),
   pickZipFile: () => ipcRenderer.invoke('pick-zip-file'),
   scanDownloads: () => ipcRenderer.invoke('scan-downloads'),
   uninstallGame: (payload) => ipcRenderer.invoke('uninstall-game', payload),

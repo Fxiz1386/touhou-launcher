@@ -179,7 +179,7 @@ export interface DanmakuAPI {
     language?: string;
   }) => Promise<{ success: boolean; error?: string }>;
   openFolder: (gameId: string) => Promise<{ success: boolean }>;
-  installZip: (zipPath: string) => Promise<{ success: boolean; game_id?: string; game_name?: string; files_extracted?: number; error?: string }>;
+  installZip: (zipPath: string, password?: string) => Promise<{ success: boolean; game_id?: string; game_name?: string; files_extracted?: number; error?: string }>;
   pickZipFile: () => Promise<string | null>;
   scanDownloads: () => Promise<BackendDetectedZip[]>;
   uninstallGame: (payload: { gameId: string; keepSaves?: boolean }) => Promise<{ success: boolean; error?: string }>;

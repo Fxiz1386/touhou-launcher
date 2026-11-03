@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Archive, Sparkles, CheckCircle2, ShieldCheck, FolderOpen, AlertCircle } from 'lucide-react';
+import { X, Archive, Sparkles, CheckCircle2, ShieldCheck, FolderOpen, AlertCircle, KeyRound, Lock } from 'lucide-react';
 import type { TouhouGame, BackendDetectedZip, RustIpcLog } from '../types/touhou.ts';
 
 interface ZipInstallerModalProps {
@@ -33,6 +33,8 @@ export default function ZipInstallerModal({
   const [installStep, setInstallStep] = useState<'idle' | 'extracting' | 'completed' | 'error'>('idle');
   const [detectedGame, setDetectedGame] = useState<string>('TH12');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [customPassword, setCustomPassword] = useState<string>('');
+  const [showPasswordInput, setShowPasswordInput] = useState<boolean>(false);
 
   // Scan downloads when modal opens
   useEffect(() => {
@@ -54,19 +56,41 @@ export default function ZipInstallerModal({
 
   const guessGameFromFilename = (fileName: string) => {
     const lower = fileName.toLowerCase();
-    if (lower.includes('th12') || lower.includes('ufo')) return 'TH12';
-    if (lower.includes('th06') || lower.includes('eosd') || lower.includes('koumakyou')) return 'TH06';
-    if (lower.includes('th07') || lower.includes('pcb') || lower.includes('youyoumu')) return 'TH07';
-    if (lower.includes('th08') || lower.includes('in') || lower.includes('eiyashou')) return 'TH08';
-    if (lower.includes('th09') || lower.includes('pofv') || lower.includes('kaeizuka')) return 'TH09';
-    if (lower.includes('th10') || lower.includes('mof') || lower.includes('fuujinroku')) return 'TH10';
-    if (lower.includes('th11') || lower.includes('sa') || lower.includes('subterranean')) return 'TH11';
-    if (lower.includes('th13') || lower.includes('td') || lower.includes('ten desires')) return 'TH13';
-    if (lower.includes('th14') || lower.includes('ddc')) return 'TH14';
-    if (lower.includes('th15') || lower.includes('lolk')) return 'TH15';
-    if (lower.includes('th16') || lower.includes('hsifs')) return 'TH16';
-    if (lower.includes('th17') || lower.includes('wbawc')) return 'TH17';
-    if (lower.includes('th18') || lower.includes('um')) return 'TH18';
+    // Spin-offs first
+    if (lower.includes('th185') || lower.includes('18.5') || lower.includes('black market')) return 'TH185';
+    if (lower.includes('th175') || lower.includes('17.5') || lower.includes('sunken fossil')) return 'TH175';
+    if (lower.includes('th165') || lower.includes('16.5') || lower.includes('violet detector')) return 'TH165';
+    if (lower.includes('th155') || lower.includes('15.5') || lower.includes('antinomy')) return 'TH155';
+    if (lower.includes('th145') || lower.includes('14.5') || lower.includes('urban legend')) return 'TH145';
+    if (lower.includes('th143') || lower.includes('14.3') || lower.includes('impossible spell')) return 'TH143';
+    if (lower.includes('th135') || lower.includes('13.5') || lower.includes('hopeless masquerade')) return 'TH135';
+    if (lower.includes('th128') || lower.includes('12.8') || lower.includes('fairy wars')) return 'TH128';
+    if (lower.includes('th125') || lower.includes('12.5') || lower.includes('double spoiler')) return 'TH125';
+    if (lower.includes('th123') || lower.includes('12.3') || lower.includes('hisoutensoku')) return 'TH123';
+    if (lower.includes('th105') || lower.includes('10.5') || lower.includes('scarlet weather')) return 'TH105';
+    if (lower.includes('th095') || lower.includes('9.5') || lower.includes('shoot the bullet')) return 'TH095';
+    if (lower.includes('th075') || lower.includes('7.5') || lower.includes('immaterial and missing')) return 'TH075';
+    // Mainline reverse order
+    if (lower.includes('th20') || lower.includes('fossilized wonders')) return 'TH20';
+    if (lower.includes('th19') || lower.includes('unfinished dream')) return 'TH19';
+    if (lower.includes('th18') || lower.includes('unconnected marketeers')) return 'TH18';
+    if (lower.includes('th17') || lower.includes('wily beast')) return 'TH17';
+    if (lower.includes('th16') || lower.includes('hidden star')) return 'TH16';
+    if (lower.includes('th15') || lower.includes('legacy of lunatic')) return 'TH15';
+    if (lower.includes('th14') || lower.includes('double dealing')) return 'TH14';
+    if (lower.includes('th13') || lower.includes('ten desires')) return 'TH13';
+    if (lower.includes('th12') || lower.includes('fantastic object') || lower.includes('ufo')) return 'TH12';
+    if (lower.includes('th11') || lower.includes('subterranean animism') || lower.includes('chireiden')) return 'TH11';
+    if (lower.includes('th10') || lower.includes('mountain of faith') || lower.includes('fuujinroku')) return 'TH10';
+    if (lower.includes('th09') || lower.includes('flower view') || lower.includes('kaeizuka')) return 'TH09';
+    if (lower.includes('th08') || lower.includes('imperishable night') || lower.includes('eiyashou')) return 'TH08';
+    if (lower.includes('th07') || lower.includes('cherry blossom') || lower.includes('youyoumu')) return 'TH07';
+    if (lower.includes('th06') || lower.includes('scarlet devil') || lower.includes('koumakyou')) return 'TH06';
+    if (lower.includes('th05') || lower.includes('mystic square')) return 'TH05';
+    if (lower.includes('th04') || lower.includes('lotus land')) return 'TH04';
+    if (lower.includes('th03') || lower.includes('phantasmagoria of dim')) return 'TH03';
+    if (lower.includes('th02') || lower.includes('story of eastern')) return 'TH02';
+    if (lower.includes('th01') || lower.includes('highly responsive')) return 'TH01';
     return 'Touhou';
   };
 
@@ -85,7 +109,7 @@ export default function ZipInstallerModal({
     }
   };
 
-  const handleStartInstall = async () => {
+  const handleStartInstall = async (overridePassword?: string) => {
     if (!selectedPath) {
       await handlePickFile();
       return;
@@ -94,6 +118,7 @@ export default function ZipInstallerModal({
     setInstallStep('extracting');
     setErrorMessage(null);
 
+    const pwdToUse = overridePassword !== undefined ? overridePassword : customPassword;
     const fileName = selectedFileName || selectedPath.split('/').pop() || selectedPath;
     const logId = onAddLog?.(
       'extract_archive:start',
@@ -102,6 +127,7 @@ export default function ZipInstallerModal({
         file_name: fileName,
         detected_target: detectedGame,
         extractor: '7z / Native Rust',
+        password_mode: pwdToUse ? 'custom' : 'auto (moriyashrine.org)',
       },
       {
         status: 'extracting',
@@ -112,7 +138,7 @@ export default function ZipInstallerModal({
 
     if (window.danmakuAPI) {
       try {
-        const res = await window.danmakuAPI.installZip(selectedPath);
+        const res = await window.danmakuAPI.installZip(selectedPath, pwdToUse || undefined);
         if (res.success) {
           const gameCode = res.game_id || detectedGame;
           setDetectedGame(gameCode);
@@ -126,6 +152,7 @@ export default function ZipInstallerModal({
                 files_extracted: res.files_extracted,
                 game_id: res.game_id,
                 game_name: res.game_name,
+                decrypted: true,
               },
             });
           }
@@ -151,6 +178,9 @@ export default function ZipInstallerModal({
         } else {
           setInstallStep('error');
           setErrorMessage(res.error || 'Error al descomprimir el archivo.');
+          if (res.error && (res.error.toLowerCase().includes('contraseña') || res.error.toLowerCase().includes('password'))) {
+            setShowPasswordInput(true);
+          }
 
           if (logId && onUpdateLog) {
             onUpdateLog(logId, {
@@ -283,6 +313,46 @@ export default function ZipInstallerModal({
                 </div>
               </div>
 
+              {/* Optional password input for encrypted archives */}
+              <div className="rounded-xl border border-neutral-800 bg-neutral-950/70 p-3.5 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordInput(!showPasswordInput)}
+                  className="flex items-center justify-between w-full text-xs font-semibold text-neutral-300 hover:text-white transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <KeyRound className="h-4 w-4 text-amber-400" />
+                    <span>Contraseña de Descompresión</span>
+                  </div>
+                  <span className="text-[10px] text-amber-400/90 font-mono bg-amber-950/50 px-2 py-0.5 rounded border border-amber-800/60">
+                    {showPasswordInput ? 'Ocultar' : 'moriyashrine.org (Auto)'}
+                  </span>
+                </button>
+                {showPasswordInput && (
+                  <div className="pt-2 border-t border-neutral-800/80 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={customPassword}
+                        onChange={(e) => setCustomPassword(e.target.value)}
+                        placeholder="moriyashrine.org (o deja vacío para auto)"
+                        className="flex-1 rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-xs text-neutral-100 placeholder-neutral-500 focus:border-rose-500 focus:outline-none font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setCustomPassword('moriyashrine.org')}
+                        className="rounded-lg border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 px-2.5 py-1.5 text-[11px] font-semibold transition-colors shrink-0 font-mono"
+                      >
+                        Moriya
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-neutral-400 leading-relaxed">
+                      El instalador prueba automáticamente las contraseñas conocidas de Moriya Shrine (<code className="text-amber-300">moriyashrine.org</code>). Puedes especificar una personalizada si el archivo lo requiere.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               {/* Japanese Shift-JIS fix toggle */}
               <div className="rounded-xl border border-neutral-800 bg-neutral-950 p-4 space-y-2">
                 <div className="flex items-center justify-between">
@@ -314,7 +384,7 @@ export default function ZipInstallerModal({
                 Extrayendo y desofuscando Shift-JIS...
               </p>
               <p className="text-xs text-emerald-400 font-mono">
-                Reparando nombres de archivos japoneses · Creando prefijo Wine · Aplicando parches
+                Desbloqueando archivo · Creando prefijo Wine · Aplicando parches
               </p>
             </div>
           )}
@@ -334,7 +404,7 @@ export default function ZipInstallerModal({
           )}
 
           {installStep === 'error' && (
-            <div className="py-6 flex flex-col items-center justify-center text-center space-y-3">
+            <div className="py-4 flex flex-col items-center justify-center text-center space-y-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-500/20 text-rose-400">
                 <AlertCircle className="h-8 w-8" />
               </div>
@@ -342,8 +412,41 @@ export default function ZipInstallerModal({
                 Error en la instalación
               </h4>
               <p className="text-xs text-rose-300 max-w-sm font-mono break-all">
-                {errorMessage || 'Ocurrió un error inesperado al procesar el archivo ZIP.'}
+                {errorMessage || 'Ocurrió un error inesperado al procesar el archivo.'}
               </p>
+
+              {(errorMessage?.toLowerCase().includes('contraseña') || errorMessage?.toLowerCase().includes('password') || showPasswordInput) && (
+                <div className="w-full max-w-md bg-neutral-950 p-4 rounded-xl border border-neutral-800 space-y-2 text-left">
+                  <div className="flex items-center justify-between text-xs font-semibold text-neutral-200">
+                    <span className="flex items-center gap-1.5">
+                      <Lock className="h-3.5 w-3.5 text-amber-400" />
+                      Introduce la contraseña del archivo:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setCustomPassword('moriyashrine.org')}
+                      className="text-[10px] text-rose-400 hover:text-rose-300 underline font-mono"
+                    >
+                      moriyashrine.org
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={customPassword}
+                      onChange={(e) => setCustomPassword(e.target.value)}
+                      placeholder="Ej: moriyashrine.org"
+                      className="flex-1 rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-xs text-neutral-100 placeholder-neutral-500 focus:border-rose-500 focus:outline-none font-mono"
+                    />
+                    <button
+                      onClick={() => handleStartInstall(customPassword)}
+                      className="rounded-lg bg-rose-600 hover:bg-rose-500 text-white px-4 py-2 text-xs font-semibold shadow transition-all shrink-0 cursor-pointer"
+                    >
+                      Descomprimir
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
