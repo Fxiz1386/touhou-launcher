@@ -29,27 +29,39 @@ pub fn detect_game_in_archive(path: &Path) -> Result<Option<&'static GameDef>, S
     }
 
     let rules: &[(&[&str], &str)] = &[
+        (&["th01", "touhou 1", "touhou 01", "highly responsive to prayers", "reiiden"], "th01"),
+        (&["th02", "touhou 2", "touhou 02", "story of eastern wonderland", "fuumaroku"], "th02"),
+        (&["th03", "touhou 3", "touhou 03", "phantasmagoria of dim.dream", "yumejikuu"], "th03"),
+        (&["th04", "touhou 4", "touhou 04", "lotus land story", "gensokyo"], "th04"),
+        (&["th05", "touhou 5", "touhou 05", "mystic square", "kaikidan"], "th05"),
         (&["th06", "touhou 6", "touhou 06", "scarlet devil", "koumakyou"], "th06"),
+        (&["th075", "touhou 7.5", "touhou 07.5", "immaterial and missing power", "suimusou"], "th075"),
         (&["th07", "touhou 7", "touhou 07", "cherry blossom", "youyoumu"], "th07"),
         (&["th08", "touhou 8", "touhou 08", "imperishable night", "eiyashou"], "th08"),
         (&["th095", "touhou 9.5", "shoot the bullet", "bohemian"], "th095"),
         (&["th09", "touhou 9", "touhou 09", "flower view", "kaeizuka"], "th09"),
+        (&["th105", "touhou 10.5", "scarlet weather rhapsody", "hisouten"], "th105"),
         (&["th10", "touhou 10", "mountain of faith", "fuujinroku"], "th10"),
         (&["th11", "touhou 11", "subterranean animism", "chireiden"], "th11"),
+        (&["th123", "touhou 12.3", "hisoutensoku"], "th123"),
         (&["th125", "touhou 12.5", "double spoiler"], "th125"),
         (&["th128", "touhou 12.8", "fairy wars", "great fairy wars"], "th128"),
         (&["th12", "touhou 12", "fantastic object", "seirensen"], "th12"),
+        (&["th135", "touhou 13.5", "hopeless masquerade", "shinkirou"], "th135"),
         (&["th13", "touhou 13", "ten desires", "shinreibyou"], "th13"),
         (&["th143", "touhou 14.3", "impossible spell card"], "th143"),
+        (&["th145", "touhou 14.5", "urban legend in limbo", "shinpiroku"], "th145"),
         (&["th14", "touhou 14", "double dealing character", "kishinjou"], "th14"),
+        (&["th155", "touhou 15.5", "antinomy of common flowers", "hyouibana"], "th155"),
         (&["th15", "touhou 15", "legacy of lunatic kingdom", "kanjuden"], "th15"),
         (&["th165", "touhou 16.5", "violet detector"], "th165"),
         (&["th16", "touhou 16", "hidden star in four seasons", "tenkuushou"], "th16"),
+        (&["th175", "touhou 17.5", "sunken fossil world", "gouyoku ibun"], "th175"),
         (&["th17", "touhou 17", "wily beast and weakest creature", "kikeijuu"], "th17"),
         (&["th185", "touhou 18.5", "100th black market"], "th185"),
         (&["th18", "touhou 18", "unconnected marketeers", "kouryuudou"], "th18"),
         (&["th19", "touhou 19", "unfinished dream of all living ghost", "juuouen"], "th19"),
-        (&["th20", "touhou 20", "fanciful dream and wondering beast", "musouroku"], "th20"),
+        (&["th20", "touhou 20", "fossilized wonders", "musouroku"], "th20"),
     ];
 
     for (patterns, id) in rules {
@@ -189,7 +201,7 @@ pub fn install_zip(zip_path: &Path, games_dir: &Path) -> Result<InstallResult, S
     } else if game.id == "th08" {
         setup_th08_compatibility(&target_dir);
     }
-    if game.era.contains("DirectX 8") || game.id == "th06" || game.id == "th07" || game.id == "th08" {
+    if game.era.contains("DirectX 8") || game.id == "th06" || game.id == "th07" || game.id == "th08" || game.id == "th075" {
         ensure_dx8_compatibility(&target_dir);
     }
     ensure_thcrap_integrity(&target_dir, game.id);

@@ -136,7 +136,7 @@ pub fn launch_game(
             .arg("bash")
             .arg("-c")
             .arg(
-                r#"wine "$@" & PID=$!; sleep 1.2; while kill -0 $PID 2>/dev/null || pidof -q "東方紅魔郷.exe" "vpatch.exe" "th06.exe" "th06e.exe" "th12.exe" "th12 (thpatch-en).exe" "th07.exe" "th08.exe" "th09.exe" "th095.exe" "th10.exe" "th11.exe" "th125.exe" "th128.exe" "th13.exe" "th14.exe" "th143.exe" "th15.exe" "th16.exe" "th165.exe" "th17.exe" "th18.exe" "th185.exe" "th19.exe" "th20.exe" "custom.exe"; do sleep 0.5; done; wineserver -k 2>/dev/null || true; killall -9 winedevice.exe 2>/dev/null || true"#
+                r#"wine "$@" & PID=$!; sleep 1.2; while kill -0 $PID 2>/dev/null || pidof -q "東方紅魔郷.exe" "vpatch.exe" "th06.exe" "th06e.exe" "th075.exe" "th105.exe" "th123.exe" "th135.exe" "th145.exe" "th155.exe" "th175.exe" "th12.exe" "th12 (thpatch-en).exe" "th07.exe" "th08.exe" "th09.exe" "th095.exe" "th10.exe" "th11.exe" "th125.exe" "th128.exe" "th13.exe" "th14.exe" "th143.exe" "th15.exe" "th16.exe" "th165.exe" "th17.exe" "th18.exe" "th185.exe" "th19.exe" "th20.exe" "custom.exe"; do sleep 0.5; done; wineserver -k 2>/dev/null || true; killall -9 winedevice.exe 2>/dev/null || true"#
             )
             .arg("_");
 
@@ -148,7 +148,7 @@ pub fn launch_game(
         let mut b = Command::new("bash");
         b.arg("-c")
             .arg(
-                r#"wine "$@" & PID=$!; sleep 1.2; while kill -0 $PID 2>/dev/null || pidof -q "東方紅魔郷.exe" "vpatch.exe" "th06.exe" "th06e.exe" "th12.exe" "th12 (thpatch-en).exe" "th07.exe" "th08.exe" "th09.exe" "th095.exe" "th10.exe" "th11.exe" "th125.exe" "th128.exe" "th13.exe" "th14.exe" "th143.exe" "th15.exe" "th16.exe" "th165.exe" "th17.exe" "th18.exe" "th185.exe" "th19.exe" "th20.exe" "custom.exe"; do sleep 0.5; done; wineserver -k 2>/dev/null || true; killall -9 winedevice.exe 2>/dev/null || true"#
+                r#"wine "$@" & PID=$!; sleep 1.2; while kill -0 $PID 2>/dev/null || pidof -q "東方紅魔郷.exe" "vpatch.exe" "th06.exe" "th06e.exe" "th075.exe" "th105.exe" "th123.exe" "th135.exe" "th145.exe" "th155.exe" "th175.exe" "th12.exe" "th12 (thpatch-en).exe" "th07.exe" "th08.exe" "th09.exe" "th095.exe" "th10.exe" "th11.exe" "th125.exe" "th128.exe" "th13.exe" "th14.exe" "th143.exe" "th15.exe" "th16.exe" "th165.exe" "th17.exe" "th18.exe" "th185.exe" "th19.exe" "th20.exe" "custom.exe"; do sleep 0.5; done; wineserver -k 2>/dev/null || true; killall -9 winedevice.exe 2>/dev/null || true"#
             )
             .arg("_");
         for arg in wine_args {
@@ -164,7 +164,7 @@ pub fn launch_game(
         .env("WINEESYNC", "1")
         .env("PULSE_LATENCY_MSEC", "30");
 
-    if game.era.contains("DirectX 8") || game.id == "th06" || game.id == "th07" || game.id == "th08" {
+    if game.era.contains("DirectX 8") || game.id == "th06" || game.id == "th07" || game.id == "th08" || game.id == "th075" {
         cmd.env("DXVK_FRAME_RATE", "60")
            .env("WINEDLLOVERRIDES", "d3d8=n,b");
     }
