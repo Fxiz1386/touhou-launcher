@@ -184,6 +184,13 @@ pub fn install_zip(zip_path: &Path, games_dir: &Path) -> Result<InstallResult, S
 
     if game.id == "th06" {
         setup_th06_compatibility(&target_dir);
+    } else if game.id == "th07" {
+        setup_th07_compatibility(&target_dir);
+    } else if game.id == "th08" {
+        setup_th08_compatibility(&target_dir);
+    }
+    if game.era.contains("DirectX 8") || game.id == "th06" || game.id == "th07" || game.id == "th08" {
+        ensure_dx8_compatibility(&target_dir);
     }
     ensure_thcrap_integrity(&target_dir, game.id);
 
@@ -383,6 +390,58 @@ pub fn setup_th06_compatibility(game_dir: &Path) {
     } else if moji_cfg.exists() && !main_cfg.exists() {
         #[cfg(unix)]
         let _ = std::os::unix::fs::symlink("“Œ•û\u{008d}g–‚‹½.cfg", &main_cfg);
+    }
+}
+
+pub fn setup_th07_compatibility(game_dir: &Path) {
+    let jp_exe = game_dir.join("東方妖々夢.exe");
+    let en_exe = game_dir.join("th07.exe");
+    if jp_exe.exists() && !en_exe.exists() {
+        #[cfg(unix)]
+        let _ = std::os::unix::fs::symlink("東方妖々夢.exe", &en_exe);
+    }
+    let jp_cfg = game_dir.join("東方妖々夢.cfg");
+    let en_cfg = game_dir.join("th07.cfg");
+    if jp_cfg.exists() && !en_cfg.exists() {
+        #[cfg(unix)]
+        let _ = std::os::unix::fs::symlink("東方妖々夢.cfg", &en_cfg);
+    } else if en_cfg.exists() && !jp_cfg.exists() {
+        #[cfg(unix)]
+        let _ = std::os::unix::fs::symlink("th07.cfg", &jp_cfg);
+    }
+}
+
+pub fn setup_th08_compatibility(game_dir: &Path) {
+    let jp_exe = game_dir.join("東方永夜抄.exe");
+    let en_exe = game_dir.join("th08.exe");
+    if jp_exe.exists() && !en_exe.exists() {
+        #[cfg(unix)]
+        let _ = std::os::unix::fs::symlink("東方永夜抄.exe", &en_exe);
+    }
+    let jp_cfg = game_dir.join("東方永夜抄.cfg");
+    let en_cfg = game_dir.join("th08.cfg");
+    if jp_cfg.exists() && !en_cfg.exists() {
+        #[cfg(unix)]
+        let _ = std::os::unix::fs::symlink("東方永夜抄.cfg", &en_cfg);
+    } else if en_cfg.exists() && !jp_cfg.exists() {
+        #[cfg(unix)]
+        let _ = std::os::unix::fs::symlink("th08.cfg", &jp_cfg);
+    }
+}
+
+const D3D8_DLL: &[u8] = include_bytes!("../assets/d3d8.dll");
+
+pub fn ensure_dx8_compatibility(game_dir: &Path) {
+    let d3d8_path = game_dir.join("d3d8.dll");
+    if !d3d8_path.exists() {
+        let _ = fs::write(&d3d8_path, D3D8_DLL);
+    }
+    let dxvk_conf = game_dir.join("dxvk.conf");
+    if !dxvk_conf.exists() {
+        let _ = fs::write(
+            &dxvk_conf,
+            "d3d8.maxFrameRate = 60\nd3d9.maxFrameRate = 60\nd3d9.presentInterval = 1\n",
+        );
     }
 }
 

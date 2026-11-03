@@ -18,6 +18,13 @@ pub fn launch_game(
 
     if game.id == "th06" {
         crate::installer::setup_th06_compatibility(game_dir);
+    } else if game.id == "th07" {
+        crate::installer::setup_th07_compatibility(game_dir);
+    } else if game.id == "th08" {
+        crate::installer::setup_th08_compatibility(game_dir);
+    }
+    if game.era.contains("DirectX 8") || game.id == "th06" || game.id == "th07" || game.id == "th08" {
+        crate::installer::ensure_dx8_compatibility(game_dir);
     }
     crate::installer::ensure_thcrap_integrity(game_dir, game.id);
 
@@ -157,7 +164,7 @@ pub fn launch_game(
         .env("WINEESYNC", "1")
         .env("PULSE_LATENCY_MSEC", "30");
 
-    if game.id == "th06" {
+    if game.era.contains("DirectX 8") || game.id == "th06" || game.id == "th07" || game.id == "th08" {
         cmd.env("DXVK_FRAME_RATE", "60")
            .env("WINEDLLOVERRIDES", "d3d8=n,b");
     }
