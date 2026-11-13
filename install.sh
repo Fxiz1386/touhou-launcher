@@ -73,7 +73,7 @@ echo "[2/5] Comprobando dependencias de la interfaz..."
 if [ ! -d "$DIR/danmaku-launcher/node_modules" ]; then
     if command -v npm >/dev/null 2>&1; then
         echo "Instalando paquetes de Electron y React (npm install)..."
-        (cd "$DIR/danmaku-launcher" && npm install)
+        (cd "$DIR/danmaku-launcher" && (npm install || npm install --legacy-peer-deps))
     else
         echo "Aviso: npm no encontrado. Se usará el lanzador nativo ligero como respaldo."
     fi

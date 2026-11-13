@@ -36,7 +36,7 @@ En distribuciones basadas en Ubuntu / Debian / Arch:
 
 1. Clona el repositorio:
 ```bash
-git clone git@github.com:Fxiz1386/touhou-launcher.git
+git clone https://github.com/Fxiz1386/touhou-launcher.git
 cd touhou-launcher
 ```
 

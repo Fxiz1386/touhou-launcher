@@ -31,9 +31,7 @@ echo "[2/4] Verificando interfaz de usuario..."
 if [ -d "$DIR/danmaku-launcher" ]; then
     (
         cd "$DIR/danmaku-launcher"
-        if [ ! -d "node_modules" ]; then
-            npm install
-        fi
+        npm install || npm install --legacy-peer-deps
         npm run build
     )
 fi
